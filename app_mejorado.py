@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # Título
-st.title("🏪 Modelo de Tienda Espejo - Versión Mejorada")
+st.title("🏪 Modelo de Tienda Espejo v1.0")
 st.markdown("### Encuentra la tienda operativa más similar a tu propuesta")
 
 # Función para calcular similitud con modelo estadístico mejorado
@@ -234,11 +234,11 @@ if df is not None:
     
     # Si no existen, advertir al usuario
     if not tiene_viviendas:
-        st.warning("⚠️ No se encontró columna 'VIVIENDAS' o 'VIVIENDAS_TOTALES' en el dataset. Deberás ingresarlas manualmente.")
+        #st.warning("⚠️ No se encontró columna 'VIVIENDAS' o 'VIVIENDAS_TOTALES' en el dataset. Deberás ingresarlas manualmente.")
         df['VIVIENDAS'] = 0  # Valor por defecto
     
     if not tiene_empleos:
-        st.warning("⚠️ No se encontró columna 'EMPLEOS' o 'EMPLEOS_TOTALES' en el dataset. Deberás ingresarlas manualmente.")
+        #st.warning("⚠️ No se encontró columna 'EMPLEOS' o 'EMPLEOS_TOTALES' en el dataset. Deberás ingresarlas manualmente.")
         df['EMPLEOS'] = 0  # Valor por defecto
     
     # Dos columnas: entrada de datos y resultados
