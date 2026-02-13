@@ -36,7 +36,7 @@ st.markdown("""
     }
     
     .main-header h1 {
-        color: black;
+        color: white;
         font-size: 2.5rem;
         font-weight: bold;
         margin: 0;
@@ -52,7 +52,7 @@ st.markdown("""
     /* Botones */
     .stButton>button {
         background-color: #ED1C24;
-        color: white;
+        color: black;
         border: none;
         border-radius: 5px;
         padding: 0.5rem 2rem;
