@@ -52,7 +52,7 @@ st.markdown("""
     /* Botones */
     .stButton>button {
         background-color: #ED1C24;
-        color: black;
+        color: white;
         border: none;
         border-radius: 5px;
         padding: 0.5rem 2rem;
@@ -125,7 +125,7 @@ st.markdown("""
     
     /* Cards */
     .metric-card {
-        background: white;
+        background: black;
         padding: 1rem;
         border-radius: 8px;
         border-left: 4px solid #ED1C24;
