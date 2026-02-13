@@ -162,7 +162,7 @@ with col_logo:
 with col_title:
     st.markdown("""
         <div class='main-header'>
-            <h1>🏪 Modelo de Tienda Espejo</h1>
+            <h2>Modelo de Tienda Espejo</h2>
             <p>Encuentra la tienda operativa más similar a tu propuesta</p>
         </div>
     """, unsafe_allow_html=True)
