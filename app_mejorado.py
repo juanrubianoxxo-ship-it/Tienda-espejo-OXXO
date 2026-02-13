@@ -17,7 +17,7 @@ st.set_page_config(
 
 # Título
 st.title("🏪 Modelo de Tienda Espejo - Versión Mejorada")
-st.markdown("### Encuentra la tienda operativa más similar a tu propuesta con modelo estadístico robusto")
+st.markdown("### Encuentra la tienda operativa más similar a tu propuesta")
 
 # Función para calcular similitud con modelo estadístico mejorado
 def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
@@ -143,8 +143,8 @@ def calcular_estadisticas(df_resultado, nueva_tienda):
         'VT_max': top_10['VT'].max(),
         'ET_promedio': top_10['ET'].mean(),
         'ET_std': top_10['ET'].std(),
-        'RENTA_promedio': top_10[' RENTA '].mean(),
-        'RENTA_std': top_10[' RENTA '].std(),
+        'RENTA_promedio': top_10['RENTA'].mean(),
+        'RENTA_std': top_10['RENTA'].std(),
         'AREA_promedio': top_10['AREA'].mean(),
         'similitud_promedio': top_10['SIMILITUD'].mean()
     }
@@ -161,7 +161,7 @@ with st.sidebar:
     
     if usar_ejemplo:
         try:
-            df = pd.read_excel('/mnt/user-data/uploads/Book.xlsx')
+            df = pd.read_excel('Book.xlsx')
             st.success(f"✅ {len(df)} tiendas cargadas")
         except:
             st.warning("⚠️ Carga tu archivo Excel abajo")
@@ -220,7 +220,7 @@ with st.sidebar:
 if df is not None:
     # Verificar que las columnas necesarias existan
     columnas_requeridas = ['SEG26', 'ZONA', 'MUN', 'ESTRATO', 'TIPO DE LOCAL', 
-                           'AREA', 'GENERADOR', 'VT', 'ET', ' RENTA ', 'CR', 'NAME']
+                           'AREA', 'GENERADOR', 'VT', 'ET', 'RENTA', 'CR', 'NAME']
     
     # Verificar si existen columnas de viviendas y empleos
     tiene_viviendas = 'VIVIENDAS' in df.columns or 'VIVIENDAS_TOTALES' in df.columns
@@ -318,7 +318,7 @@ if df is not None:
                     st.metric("VT", f"{mejor['VT']:,.0f}")
                     st.metric("ET", f"{mejor['ET']:,.0f}")
                 with c4:
-                    st.metric("Renta", f"${mejor[' RENTA ']:,.0f}")
+                    st.metric("Renta", f"${mejor['RENTA']:,.0f}")
                     st.metric("Área", f"{mejor['AREA']:.1f} m²")
                 
                 # Detalles de la mejor tienda
@@ -365,7 +365,7 @@ if df is not None:
                 # Preparar dataframe para mostrar
                 top_10 = resultado.head(10)[['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO', 
                                               'TIPO DE LOCAL', 'AREA', 'VIVIENDAS', 'EMPLEOS',
-                                              'VT', 'ET', ' RENTA ', 'SIMILITUD', 'DISTANCIA']]
+                                              'VT', 'ET', 'RENTA', 'SIMILITUD', 'DISTANCIA']]
                 
                 # Formatear columnas
                 top_10_display = top_10.copy()
@@ -376,7 +376,7 @@ if df is not None:
                 top_10_display['EMPLEOS'] = top_10_display['EMPLEOS'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['VT'] = top_10_display['VT'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['ET'] = top_10_display['ET'].apply(lambda x: f"{x:,.0f}")
-                top_10_display[' RENTA '] = top_10_display[' RENTA '].apply(lambda x: f"${x:,.0f}")
+                top_10_display['RENTA'] = top_10_display['RENTA'].apply(lambda x: f"${x:,.0f}")
                 
                 st.dataframe(top_10_display, use_container_width=True, hide_index=True)
                 
@@ -438,12 +438,12 @@ if df is not None:
                     fig_renta = px.scatter(
                         top_10,
                         x='AREA',
-                        y=' RENTA ',
+                        y='RENTA',
                         size='VT',
                         color='SIMILITUD',
                         hover_data=['NAME', 'ZONA', 'ESTRATO', 'VIVIENDAS', 'EMPLEOS'],
                         title='Renta vs Área (Tamaño = VT, Color = Similitud)',
-                        labels={'AREA': 'Área (m²)', ' RENTA ': 'Renta ($)'},
+                        labels={'AREA': 'Área (m²)', 'RENTA': 'Renta ($)'},
                         color_continuous_scale='RdYlGn'
                     )
                     
@@ -648,4 +648,4 @@ else:
 
 # Footer
 st.divider()
-st.caption("🏪 Modelo de Tienda Espejo v2.0 - Modelo Estadístico Robusto | Desarrollado con Streamlit")
+st.caption("🏪 Modelo de Tienda Espejo v2.0")
