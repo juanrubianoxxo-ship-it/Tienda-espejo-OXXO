@@ -162,7 +162,7 @@ with col_logo:
 with col_title:
     st.markdown("""
         <div class='main-header'>
-            <h2>Modelo de Tienda Espejo</h2>
+            <h1>Modelo de Tienda Espejo</h1>
             <p>Encuentra la tienda operativa más similar a tu propuesta</p>
         </div>
     """, unsafe_allow_html=True)
@@ -897,6 +897,6 @@ st.divider()
 st.markdown("""
     <div style='text-align: center; padding: 20px; background: linear-gradient(90deg, #ED1C24 0%, #C41E3A 100%); border-radius: 10px;'>
         <h3 style='color: #FFD100; margin: 0;'>🏪 Modelo de Tienda Espejo OXXO</h3>
-        <p style='color: white; margin: 0.5rem 0 0 0;'>v2.0 | Análisis Estadístico Avanzado</p>
+        <p style='color: white; margin: 0.5rem 0 0 0;'>v2.0 | by: Juan Camilo Rubiano Usaquén </p>
     </div>
 """, unsafe_allow_html=True)
