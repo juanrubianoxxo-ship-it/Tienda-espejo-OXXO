@@ -10,14 +10,162 @@ import plotly.graph_objects as go
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Modelo de Tienda Espejo",
+    page_title="Modelo de Tienda Espejo OXXO",
     page_icon="🏪",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Título
-st.title("🏪 Modelo de Tienda Espejo v1.0")
-st.markdown("### Encuentra la tienda operativa más similar a tu propuesta")
+# CSS personalizado con colores de OXXO
+st.markdown("""
+    <style>
+    /* Colores principales de OXXO */
+    :root {
+        --oxxo-red: #ED1C24;
+        --oxxo-yellow: #FFD100;
+        --oxxo-dark: #1a1a1a;
+    }
+    
+    /* Header personalizado */
+    .main-header {
+        background: linear-gradient(135deg, #ED1C24 0%, #C41E3A 100%);
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .main-header p {
+        color: #FFD100;
+        font-size: 1.2rem;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    /* Botones */
+    .stButton>button {
+        background-color: #ED1C24;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 0.5rem 2rem;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .stButton>button:hover {
+        background-color: #C41E3A;
+        box-shadow: 0 4px 8px rgba(237, 28, 36, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    /* Métricas */
+    [data-testid="stMetricValue"] {
+        color: #ED1C24;
+        font-weight: bold;
+    }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+    }
+    
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: #ED1C24;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: #f0f0f0;
+        border-radius: 5px 5px 0 0;
+        padding: 10px 20px;
+        color: #1a1a1a;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: #ED1C24;
+        color: white;
+    }
+    
+    /* Expanders */
+    .streamlit-expanderHeader {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        color: #ED1C24;
+        font-weight: 600;
+    }
+    
+    /* Dataframes */
+    .dataframe {
+        border: 2px solid #ED1C24 !important;
+    }
+    
+    /* Success message */
+    .stSuccess {
+        background-color: #d4edda;
+        border-left: 4px solid #28a745;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: #FFD100;
+        border-width: 2px;
+    }
+    
+    /* Cards */
+    .metric-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #ED1C24;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 0.5rem 0;
+    }
+    
+    /* Download button */
+    .stDownloadButton>button {
+        background-color: #FFD100;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    
+    .stDownloadButton>button:hover {
+        background-color: #e6bb00;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Header con logo y título
+col_logo, col_title = st.columns([1, 4])
+
+with col_logo:
+    # Aquí puedes agregar el logo de OXXO si tienes la imagen
+    # st.image("logo_oxxo.png", width=150)
+    st.markdown("""
+        <div style='background-color: #ED1C24; padding: 20px; border-radius: 10px; text-align: center;'>
+            <h1 style='color: #FFD100; margin: 0; font-size: 3rem; font-weight: bold;'>OXXO</h1>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col_title:
+    st.markdown("""
+        <div class='main-header'>
+            <h1>🏪 Modelo de Tienda Espejo</h1>
+            <p>Encuentra la tienda operativa más similar a tu propuesta</p>
+        </div>
+    """, unsafe_allow_html=True)
 
 # Función para calcular similitud con modelo estadístico mejorado
 def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
@@ -463,20 +611,20 @@ if df is not None:
                     
                     fig_metricas = go.Figure()
                     
-                    # VT (Viviendas)
+                    # VT (Viviendas) - Color rojo OXXO
                     fig_metricas.add_trace(go.Bar(
                         name='Viviendas (VT)',
                         x=top_5['NAME'],
                         y=top_5['VT'],
-                        marker_color='lightblue'
+                        marker_color='#ED1C24'
                     ))
                     
-                    # ET (Empleos)
+                    # ET (Empleos) - Color amarillo OXXO
                     fig_metricas.add_trace(go.Bar(
                         name='Empleos (ET)',
                         x=top_5['NAME'],
                         y=top_5['ET'],
-                        marker_color='lightgreen'
+                        marker_color='#FFD100'
                     ))
                     
                     fig_metricas.update_layout(
@@ -484,7 +632,9 @@ if df is not None:
                         xaxis_title='Tienda',
                         yaxis_title='Cantidad',
                         barmode='group',
-                        height=400
+                        height=400,
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
                     )
                     
                     st.plotly_chart(fig_metricas, use_container_width=True)
@@ -500,7 +650,12 @@ if df is not None:
                             hover_data=['NAME', 'ZONA', 'ESTRATO', 'VT', 'ET'],
                             title='Renta vs Área (Tamaño = Viviendas VT, Color = Similitud)',
                             labels={'AREA': 'Área (m²)', renta_col: 'Renta ($)', 'VT': 'Viviendas', 'ET': 'Empleos'},
-                            color_continuous_scale='RdYlGn'
+                            color_continuous_scale=['#ED1C24', '#FFD100', '#28a745']
+                        )
+                        
+                        fig_renta.update_layout(
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
                         )
                         
                         st.plotly_chart(fig_renta, use_container_width=True)
@@ -515,7 +670,12 @@ if df is not None:
                         hover_data=['NAME', 'ZONA'],
                         title='Viviendas (VT) vs Empleos (ET) - Tamaño = Área',
                         labels={'VT': 'Viviendas Totales (VT)', 'ET': 'Empleos Totales (ET)'},
-                        color_continuous_scale='Viridis'
+                        color_continuous_scale=['#C41E3A', '#ED1C24', '#FFD100']
+                    )
+                    
+                    fig_viv_emp.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
                     )
                     
                     st.plotly_chart(fig_viv_emp, use_container_width=True)
@@ -524,10 +684,19 @@ if df is not None:
                     # Distribución por zona
                     dist_zona = top_10['ZONA'].value_counts()
                     
+                    # Crear paleta de colores OXXO
+                    colors_oxxo = ['#ED1C24', '#FFD100', '#C41E3A', '#FFA500', '#FF6B6B']
+                    
                     fig_zona = px.pie(
                         values=dist_zona.values,
                         names=dist_zona.index,
-                        title='Distribución de Tiendas Espejo por Zona'
+                        title='Distribución de Tiendas Espejo por Zona',
+                        color_discrete_sequence=colors_oxxo
+                    )
+                    
+                    fig_zona.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
                     )
                     
                     st.plotly_chart(fig_zona, use_container_width=True)
@@ -541,7 +710,12 @@ if df is not None:
                         title='Distribución por Estrato',
                         labels={'x': 'Estrato', 'y': 'Cantidad'},
                         color=dist_estrato.values,
-                        color_continuous_scale='Viridis'
+                        color_continuous_scale=['#FFD100', '#FFA500', '#ED1C24', '#C41E3A']
+                    )
+                    
+                    fig_estrato.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
                     )
                     
                     st.plotly_chart(fig_estrato, use_container_width=True)
@@ -555,12 +729,14 @@ if df is not None:
                         title='Porcentaje de Similitud - Top 10',
                         labels={'NAME': 'Tienda', 'SIMILITUD': 'Similitud (%)'},
                         color='SIMILITUD',
-                        color_continuous_scale='RdYlGn'
+                        color_continuous_scale=['#C41E3A', '#ED1C24', '#FFD100', '#28a745']
                     )
                     
                     fig_sim.update_layout(
                         xaxis_tickangle=-45,
-                        height=400
+                        height=400,
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
                     )
                     
                     st.plotly_chart(fig_sim, use_container_width=True)
@@ -641,7 +817,12 @@ if df is not None:
                         nbins=20,
                         title='Distribución de Distancias Euclidianas (Top 50)',
                         labels={'DISTANCIA': 'Distancia Euclidiana', 'count': 'Frecuencia'},
-                        color_discrete_sequence=['indianred']
+                        color_discrete_sequence=['#ED1C24']
+                    )
+                    
+                    fig_dist.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
                     )
                     
                     st.plotly_chart(fig_dist, use_container_width=True)
@@ -654,7 +835,12 @@ if df is not None:
                         hover_data=['NAME'],
                         title='Relación Distancia vs Similitud (Top 30)',
                         labels={'DISTANCIA': 'Distancia Euclidiana', 'SIMILITUD': 'Similitud (%)'},
-                        trendline="ols"
+                        color_discrete_sequence=['#ED1C24']
+                    )
+                    
+                    fig_rel.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
                     )
                     
                     st.plotly_chart(fig_rel, use_container_width=True)
@@ -708,4 +894,9 @@ else:
 
 # Footer
 st.divider()
-st.caption("🏪 Modelo de Tienda Espejo v2.0")
+st.markdown("""
+    <div style='text-align: center; padding: 20px; background: linear-gradient(90deg, #ED1C24 0%, #C41E3A 100%); border-radius: 10px;'>
+        <h3 style='color: #FFD100; margin: 0;'>🏪 Modelo de Tienda Espejo OXXO</h3>
+        <p style='color: white; margin: 0.5rem 0 0 0;'>v2.0 | Análisis Estadístico Avanzado</p>
+    </div>
+""", unsafe_allow_html=True)
