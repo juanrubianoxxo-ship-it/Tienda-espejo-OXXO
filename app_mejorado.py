@@ -152,7 +152,7 @@ col_logo, col_title = st.columns([1, 4])
 
 with col_logo:
     # Aquí puedes agregar el logo de OXXO si tienes la imagen
-    # st.image("logo_oxxo.png", width=150)
+    st.image("logo_oxxo.png", width=150)
     st.markdown("""
         <div style='background-color: #ED1C24; padding: 20px; border-radius: 10px; text-align: center;'>
             <h1 style='color: #FFD100; margin: 0; font-size: 3rem; font-weight: bold;'>OXXO</h1>
