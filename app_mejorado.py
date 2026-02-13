@@ -135,11 +135,31 @@ def calcular_estadisticas(df_resultado, nueva_tienda):
     Calcula estadísticas descriptivas del top de tiendas espejo
     """
     top_10 = df_resultado.head(10)
+    
+    # Buscar la columna de renta
     renta_col = None
     for col in df_resultado.columns:
         if 'RENTA' in col.upper():
             renta_col = col
-            break    
+            break
+    
+    # Si no se encuentra, usar un valor por defecto
+    if renta_col is None or renta_col not in df_resultado.columns:
+        stats = {
+            'VT_promedio': top_10['VT'].mean(),
+            'VT_std': top_10['VT'].std(),
+            'VT_min': top_10['VT'].min(),
+            'VT_max': top_10['VT'].max(),
+            'ET_promedio': top_10['ET'].mean(),
+            'ET_std': top_10['ET'].std(),
+            'RENTA_promedio': 0,
+            'RENTA_std': 0,
+            'AREA_promedio': top_10['AREA'].mean(),
+            'similitud_promedio': top_10['SIMILITUD'].mean(),
+            'renta_col': 'RENTA'
+        }
+        return stats
+    
     stats = {
         'VT_promedio': top_10['VT'].mean(),
         'VT_std': top_10['VT'].std(),
@@ -147,10 +167,11 @@ def calcular_estadisticas(df_resultado, nueva_tienda):
         'VT_max': top_10['VT'].max(),
         'ET_promedio': top_10['ET'].mean(),
         'ET_std': top_10['ET'].std(),
-        'RENTA_promedio': top_10['RENTA'].mean(),
-        'RENTA_std': top_10['RENTA'].std(),
+        'RENTA_promedio': top_10[renta_col].mean(),
+        'RENTA_std': top_10[renta_col].std(),
         'AREA_promedio': top_10['AREA'].mean(),
-        'similitud_promedio': top_10['SIMILITUD'].mean()
+        'similitud_promedio': top_10['SIMILITUD'].mean(),
+        'renta_col': renta_col
     }
     
     return stats
@@ -224,7 +245,7 @@ with st.sidebar:
 if df is not None:
     # Verificar que las columnas necesarias existan
     columnas_requeridas = ['SEG26', 'ZONA', 'MUN', 'ESTRATO', 'TIPO DE LOCAL', 
-                           'AREA', 'GENERADOR', 'VT', 'ET', 'RENTA', 'CR', 'NAME']
+                           'AREA', 'GENERADOR', 'VT', 'ET', 'CR', 'NAME']
     
     # Verificar si existen columnas de viviendas y empleos
     tiene_viviendas = 'VIVIENDAS' in df.columns or 'VIVIENDAS_TOTALES' in df.columns
@@ -238,12 +259,22 @@ if df is not None:
     
     # Si no existen, advertir al usuario
     if not tiene_viviendas:
-        #st.warning("⚠️ No se encontró columna 'VIVIENDAS' o 'VIVIENDAS_TOTALES' en el dataset. Deberás ingresarlas manualmente.")
         df['VIVIENDAS'] = 0  # Valor por defecto
     
     if not tiene_empleos:
-        #st.warning("⚠️ No se encontró columna 'EMPLEOS' o 'EMPLEOS_TOTALES' en el dataset. Deberás ingresarlas manualmente.")
         df['EMPLEOS'] = 0  # Valor por defecto
+    
+    # Verificar si existe columna de RENTA
+    renta_col_disponible = None
+    for col in df.columns:
+        if 'RENTA' in col.upper():
+            renta_col_disponible = col
+            break
+    
+    if renta_col_disponible is None:
+        st.warning("⚠️ No se encontró columna de RENTA en el dataset.")
+        df['RENTA'] = 0
+        renta_col_disponible = 'RENTA'
     
     # Dos columnas: entrada de datos y resultados
     col1, col2 = st.columns([1, 2])
@@ -301,6 +332,7 @@ if df is not None:
             else:
                 # Calcular estadísticas
                 stats = calcular_estadisticas(resultado, nueva_tienda)
+                renta_col = stats['renta_col']
                 
                 # Mostrar top 5
                 st.success("✅ Tiendas espejo encontradas usando modelo estadístico")
@@ -322,8 +354,10 @@ if df is not None:
                     st.metric("VT", f"{mejor['VT']:,.0f}")
                     st.metric("ET", f"{mejor['ET']:,.0f}")
                 with c4:
-                    renta_col = stats.get('renta_col', 'RENTA')
-                    st.metric("Renta", f"${mejor['RENTA']:,.0f}")
+                    if renta_col in mejor.index and mejor[renta_col] > 0:
+                        st.metric("Renta", f"${mejor[renta_col]:,.0f}")
+                    else:
+                        st.metric("Renta", "N/A")
                     st.metric("Área", f"{mejor['AREA']:.1f} m²")
                 
                 # Detalles de la mejor tienda
@@ -355,8 +389,11 @@ if df is not None:
                     st.caption(f"±{stats['ET_std']:,.0f}")
                 
                 with col_stat3:
-                    st.metric("Renta Promedio", f"${stats['RENTA_promedio']:,.0f}")
-                    st.caption(f"±{stats['RENTA_std']:,.0f}")
+                    if stats['RENTA_promedio'] > 0:
+                        st.metric("Renta Promedio", f"${stats['RENTA_promedio']:,.0f}")
+                        st.caption(f"±{stats['RENTA_std']:,.0f}")
+                    else:
+                        st.metric("Renta Promedio", "N/A")
                 
                 with col_stat4:
                     st.metric("Similitud Promedio", f"{stats['similitud_promedio']:.1f}%")
@@ -368,10 +405,16 @@ if df is not None:
                 st.markdown("### 📋 Top 10 Alternativas")
                 
                 # Preparar dataframe para mostrar
-                renta_col = stats.get('renta_col', 'RENTA')
-                top_10 = resultado.head(10)[['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO', 
-                                              'TIPO DE LOCAL', 'AREA', 'VIVIENDAS', 'EMPLEOS',
-                                              'VT', 'ET', 'RENTA', 'SIMILITUD', 'DISTANCIA']]
+                columnas_mostrar = ['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO', 
+                                   'TIPO DE LOCAL', 'AREA', 'VIVIENDAS', 'EMPLEOS',
+                                   'VT', 'ET']
+                
+                if renta_col in resultado.columns:
+                    columnas_mostrar.append(renta_col)
+                
+                columnas_mostrar.extend(['SIMILITUD', 'DISTANCIA'])
+                
+                top_10 = resultado.head(10)[columnas_mostrar]
                 
                 # Formatear columnas
                 top_10_display = top_10.copy()
@@ -382,7 +425,8 @@ if df is not None:
                 top_10_display['EMPLEOS'] = top_10_display['EMPLEOS'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['VT'] = top_10_display['VT'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['ET'] = top_10_display['ET'].apply(lambda x: f"{x:,.0f}")
-                top_10_display[renta_col] = top_10_display[renta_col].apply(lambda x: f"${x:,.0f}")
+                if renta_col in top_10_display.columns:
+                    top_10_display[renta_col] = top_10_display[renta_col].apply(lambda x: f"${x:,.0f}")
                 
                 st.dataframe(top_10_display, use_container_width=True, hide_index=True)
                 
@@ -440,20 +484,21 @@ if df is not None:
                     
                     st.plotly_chart(fig_metricas, use_container_width=True)
                     
-                    # Gráfico de renta vs área
-                    fig_renta = px.scatter(
-                        top_10,
-                        x='AREA',
-                        y='RENTA',
-                        size='VT',
-                        color='SIMILITUD',
-                        hover_data=['NAME', 'ZONA', 'ESTRATO', 'VIVIENDAS', 'EMPLEOS'],
-                        title='Renta vs Área (Tamaño = VT, Color = Similitud)',
-                        labels={'AREA': 'Área (m²)', 'RENTA': 'Renta ($)'},
-                        color_continuous_scale='RdYlGn'
-                    )
-                    
-                    st.plotly_chart(fig_renta, use_container_width=True)
+                    # Gráfico de renta vs área (solo si hay renta)
+                    if renta_col in top_10.columns and top_10[renta_col].sum() > 0:
+                        fig_renta = px.scatter(
+                            top_10,
+                            x='AREA',
+                            y=renta_col,
+                            size='VT',
+                            color='SIMILITUD',
+                            hover_data=['NAME', 'ZONA', 'ESTRATO', 'VIVIENDAS', 'EMPLEOS'],
+                            title='Renta vs Área (Tamaño = VT, Color = Similitud)',
+                            labels={'AREA': 'Área (m²)', renta_col: 'Renta ($)'},
+                            color_continuous_scale='RdYlGn'
+                        )
+                        
+                        st.plotly_chart(fig_renta, use_container_width=True)
                     
                     # Nuevo: Gráfico Viviendas vs Empleos
                     fig_viv_emp = px.scatter(
