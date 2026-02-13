@@ -133,6 +133,7 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
 def calcular_estadisticas(df_resultado, nueva_tienda):
     """
     Calcula estadísticas descriptivas del top de tiendas espejo
+    Nota: VT = Viviendas Totales, ET = Empleos Totales
     """
     top_10 = df_resultado.head(10)
     
@@ -143,35 +144,48 @@ def calcular_estadisticas(df_resultado, nueva_tienda):
             renta_col = col
             break
     
+    # Buscar columnas de ventas y tráfico (si existen con otros nombres)
+    ventas_col = None
+    trafico_col = None
+    for col in df_resultado.columns:
+        if 'VENTA' in col.upper() or col.upper() == 'SALES':
+            ventas_col = col
+        if 'TRAFICO' in col.upper() or 'TRÁFICO' in col.upper() or col.upper() == 'TRAFFIC':
+            trafico_col = col
+    
     # Si no se encuentra, usar un valor por defecto
     if renta_col is None or renta_col not in df_resultado.columns:
         stats = {
-            'VT_promedio': top_10['VT'].mean(),
+            'VT_promedio': top_10['VT'].mean(),  # VT = Viviendas
             'VT_std': top_10['VT'].std(),
             'VT_min': top_10['VT'].min(),
             'VT_max': top_10['VT'].max(),
-            'ET_promedio': top_10['ET'].mean(),
+            'ET_promedio': top_10['ET'].mean(),  # ET = Empleos
             'ET_std': top_10['ET'].std(),
             'RENTA_promedio': 0,
             'RENTA_std': 0,
             'AREA_promedio': top_10['AREA'].mean(),
             'similitud_promedio': top_10['SIMILITUD'].mean(),
-            'renta_col': 'RENTA'
+            'renta_col': 'RENTA',
+            'ventas_col': ventas_col,
+            'trafico_col': trafico_col
         }
         return stats
     
     stats = {
-        'VT_promedio': top_10['VT'].mean(),
+        'VT_promedio': top_10['VT'].mean(),  # VT = Viviendas
         'VT_std': top_10['VT'].std(),
         'VT_min': top_10['VT'].min(),
         'VT_max': top_10['VT'].max(),
-        'ET_promedio': top_10['ET'].mean(),
+        'ET_promedio': top_10['ET'].mean(),  # ET = Empleos
         'ET_std': top_10['ET'].std(),
         'RENTA_promedio': top_10[renta_col].mean(),
         'RENTA_std': top_10[renta_col].std(),
         'AREA_promedio': top_10['AREA'].mean(),
         'similitud_promedio': top_10['SIMILITUD'].mean(),
-        'renta_col': renta_col
+        'renta_col': renta_col,
+        'ventas_col': ventas_col,
+        'trafico_col': trafico_col
     }
     
     return stats
@@ -247,22 +261,10 @@ if df is not None:
     columnas_requeridas = ['SEG26', 'ZONA', 'MUN', 'ESTRATO', 'TIPO DE LOCAL', 
                            'AREA', 'GENERADOR', 'VT', 'ET', 'CR', 'NAME']
     
-    # Verificar si existen columnas de viviendas y empleos
-    tiene_viviendas = 'VIVIENDAS' in df.columns or 'VIVIENDAS_TOTALES' in df.columns
-    tiene_empleos = 'EMPLEOS' in df.columns or 'EMPLEOS_TOTALES' in df.columns
-    
-    # Normalizar nombres de columnas si es necesario
-    if 'VIVIENDAS_TOTALES' in df.columns:
-        df['VIVIENDAS'] = df['VIVIENDAS_TOTALES']
-    if 'EMPLEOS_TOTALES' in df.columns:
-        df['EMPLEOS'] = df['EMPLEOS_TOTALES']
-    
-    # Si no existen, advertir al usuario
-    if not tiene_viviendas:
-        df['VIVIENDAS'] = 0  # Valor por defecto
-    
-    if not tiene_empleos:
-        df['EMPLEOS'] = 0  # Valor por defecto
+    # VT = Viviendas Totales, ET = Empleos Totales
+    # Crear alias para mantener compatibilidad con el código
+    df['VIVIENDAS'] = df['VT']
+    df['EMPLEOS'] = df['ET']
     
     # Verificar si existe columna de RENTA
     renta_col_disponible = None
@@ -351,8 +353,8 @@ if df is not None:
                     st.metric("Similitud", f"{mejor['SIMILITUD']:.1f}%")
                     st.metric("Distancia", f"{mejor['DISTANCIA']:.3f}")
                 with c3:
-                    st.metric("VT", f"{mejor['VT']:,.0f}")
-                    st.metric("ET", f"{mejor['ET']:,.0f}")
+                    st.metric("Viviendas (VT)", f"{mejor['VT']:,.0f}")
+                    st.metric("Empleos (ET)", f"{mejor['ET']:,.0f}")
                 with c4:
                     if renta_col in mejor.index and mejor[renta_col] > 0:
                         st.metric("Renta", f"${mejor[renta_col]:,.0f}")
@@ -371,8 +373,8 @@ if df is not None:
                     with col_det2:
                         st.write(f"**Tipo de Local:** {mejor['TIPO DE LOCAL']}")
                         st.write(f"**Generador:** {mejor['GENERADOR']}")
-                        st.write(f"**Viviendas:** {mejor['VIVIENDAS']:,.0f}")
-                        st.write(f"**Empleos:** {mejor['EMPLEOS']:,.0f}")
+                        st.write(f"**Viviendas (VT):** {mejor['VT']:,.0f}")
+                        st.write(f"**Empleos (ET):** {mejor['ET']:,.0f}")
                 
                 st.divider()
                 
@@ -381,11 +383,11 @@ if df is not None:
                 col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
                 
                 with col_stat1:
-                    st.metric("VT Promedio", f"{stats['VT_promedio']:,.0f}")
+                    st.metric("Viviendas Promedio (VT)", f"{stats['VT_promedio']:,.0f}")
                     st.caption(f"±{stats['VT_std']:,.0f}")
                 
                 with col_stat2:
-                    st.metric("ET Promedio", f"{stats['ET_promedio']:,.0f}")
+                    st.metric("Empleos Promedio (ET)", f"{stats['ET_promedio']:,.0f}")
                     st.caption(f"±{stats['ET_std']:,.0f}")
                 
                 with col_stat3:
@@ -406,8 +408,7 @@ if df is not None:
                 
                 # Preparar dataframe para mostrar
                 columnas_mostrar = ['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO', 
-                                   'TIPO DE LOCAL', 'AREA', 'VIVIENDAS', 'EMPLEOS',
-                                   'VT', 'ET']
+                                   'TIPO DE LOCAL', 'AREA', 'VT', 'ET']
                 
                 if renta_col in resultado.columns:
                     columnas_mostrar.append(renta_col)
@@ -421,12 +422,16 @@ if df is not None:
                 top_10_display['SIMILITUD'] = top_10_display['SIMILITUD'].apply(lambda x: f"{x:.1f}%")
                 top_10_display['DISTANCIA'] = top_10_display['DISTANCIA'].apply(lambda x: f"{x:.3f}")
                 top_10_display['AREA'] = top_10_display['AREA'].apply(lambda x: f"{x:.1f}")
-                top_10_display['VIVIENDAS'] = top_10_display['VIVIENDAS'].apply(lambda x: f"{x:,.0f}")
-                top_10_display['EMPLEOS'] = top_10_display['EMPLEOS'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['VT'] = top_10_display['VT'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['ET'] = top_10_display['ET'].apply(lambda x: f"{x:,.0f}")
                 if renta_col in top_10_display.columns:
                     top_10_display[renta_col] = top_10_display[renta_col].apply(lambda x: f"${x:,.0f}")
+                
+                # Renombrar columnas para mayor claridad
+                top_10_display = top_10_display.rename(columns={
+                    'VT': 'Viviendas (VT)',
+                    'ET': 'Empleos (ET)'
+                })
                 
                 st.dataframe(top_10_display, use_container_width=True, hide_index=True)
                 
@@ -458,26 +463,26 @@ if df is not None:
                     
                     fig_metricas = go.Figure()
                     
-                    # VT
+                    # VT (Viviendas)
                     fig_metricas.add_trace(go.Bar(
-                        name='VT (Ventas)',
+                        name='Viviendas (VT)',
                         x=top_5['NAME'],
                         y=top_5['VT'],
                         marker_color='lightblue'
                     ))
                     
-                    # ET
+                    # ET (Empleos)
                     fig_metricas.add_trace(go.Bar(
-                        name='ET (Tráfico)',
+                        name='Empleos (ET)',
                         x=top_5['NAME'],
                         y=top_5['ET'],
                         marker_color='lightgreen'
                     ))
                     
                     fig_metricas.update_layout(
-                        title='Top 5 Tiendas Espejo - Comparación VT vs ET',
+                        title='Top 5 Tiendas Espejo - Viviendas vs Empleos',
                         xaxis_title='Tienda',
-                        yaxis_title='Valor',
+                        yaxis_title='Cantidad',
                         barmode='group',
                         height=400
                     )
@@ -492,24 +497,24 @@ if df is not None:
                             y=renta_col,
                             size='VT',
                             color='SIMILITUD',
-                            hover_data=['NAME', 'ZONA', 'ESTRATO', 'VIVIENDAS', 'EMPLEOS'],
-                            title='Renta vs Área (Tamaño = VT, Color = Similitud)',
-                            labels={'AREA': 'Área (m²)', renta_col: 'Renta ($)'},
+                            hover_data=['NAME', 'ZONA', 'ESTRATO', 'VT', 'ET'],
+                            title='Renta vs Área (Tamaño = Viviendas VT, Color = Similitud)',
+                            labels={'AREA': 'Área (m²)', renta_col: 'Renta ($)', 'VT': 'Viviendas', 'ET': 'Empleos'},
                             color_continuous_scale='RdYlGn'
                         )
                         
                         st.plotly_chart(fig_renta, use_container_width=True)
                     
-                    # Nuevo: Gráfico Viviendas vs Empleos
+                    # Gráfico VT (Viviendas) vs ET (Empleos)
                     fig_viv_emp = px.scatter(
                         top_10,
-                        x='VIVIENDAS',
-                        y='EMPLEOS',
-                        size='VT',
+                        x='VT',
+                        y='ET',
+                        size='AREA',
                         color='SIMILITUD',
-                        hover_data=['NAME', 'ZONA', 'ET'],
-                        title='Viviendas vs Empleos en Área de Influencia (Tamaño = VT)',
-                        labels={'VIVIENDAS': 'Viviendas Totales', 'EMPLEOS': 'Empleos Totales'},
+                        hover_data=['NAME', 'ZONA'],
+                        title='Viviendas (VT) vs Empleos (ET) - Tamaño = Área',
+                        labels={'VT': 'Viviendas Totales (VT)', 'ET': 'Empleos Totales (ET)'},
                         color_continuous_scale='Viridis'
                     )
                     
@@ -567,7 +572,7 @@ if df is not None:
                     
                     comparacion = pd.DataFrame({
                         'Característica': ['Segmento', 'Zona', 'Municipio', 'Estrato', 
-                                          'Tipo de Local', 'Generador', 'Área', 'Viviendas', 'Empleos'],
+                                          'Tipo de Local', 'Generador', 'Área', 'Viviendas (VT)', 'Empleos (ET)'],
                         'Tu Propuesta': [
                             nueva_tienda['SEG26'],
                             nueva_tienda['ZONA'],
@@ -587,8 +592,8 @@ if df is not None:
                             mejor_tienda['TIPO DE LOCAL'],
                             mejor_tienda['GENERADOR'],
                             f"{mejor_tienda['AREA']:.1f} m²",
-                            f"{mejor_tienda['VIVIENDAS']:,.0f}",
-                            f"{mejor_tienda['EMPLEOS']:,.0f}"
+                            f"{mejor_tienda['VT']:,.0f}",
+                            f"{mejor_tienda['ET']:,.0f}"
                         ],
                         'Coincide': [
                             '✅' if nueva_tienda['SEG26'] == mejor_tienda['SEG26'] else '❌',
@@ -598,8 +603,8 @@ if df is not None:
                             '✅' if nueva_tienda['TIPO DE LOCAL'] == mejor_tienda['TIPO DE LOCAL'] else '❌',
                             '✅' if nueva_tienda['GENERADOR'] == mejor_tienda['GENERADOR'] else '❌',
                             f"{abs(nueva_tienda['AREA'] - mejor_tienda['AREA']):.1f} m²",
-                            f"{abs(nueva_tienda['VIVIENDAS'] - mejor_tienda['VIVIENDAS']):,.0f}",
-                            f"{abs(nueva_tienda['EMPLEOS'] - mejor_tienda['EMPLEOS']):,.0f}"
+                            f"{abs(nueva_tienda['VIVIENDAS'] - mejor_tienda['VT']):,.0f}",
+                            f"{abs(nueva_tienda['EMPLEOS'] - mejor_tienda['ET']):,.0f}"
                         ]
                     })
                     
@@ -675,7 +680,7 @@ else:
     - ✅ Codifica variables categóricas de forma binaria
     - ✅ Aplica pesos configurables a cada dimensión
     - ✅ Calcula similitud en espacio multidimensional
-    - ✅ Incluye nuevas variables: **Viviendas** y **Empleos**
+    - ✅ Incluye **Viviendas (VT)** y **Empleos (ET)** como variables clave
     
     ### 📊 Variables consideradas:
     - 🏢 **Segmento** (filtro obligatorio - 30% peso fijo)
@@ -685,16 +690,20 @@ else:
     - 📏 **Área del local**
     - ⚡ **Tipo de generador**
     - 🗺️ **Municipio**
-    - 🏠 **Viviendas Totales** (nuevo)
-    - 💼 **Empleos Totales** (nuevo)
+    - 🏠 **Viviendas Totales (VT)**
+    - 💼 **Empleos Totales (ET)**
     
     ### 🎯 El resultado te mostrará:
     - La mejor tienda espejo con % de similitud y distancia euclidiana
     - Estadísticas descriptivas del Top 10 (promedios, desviaciones)
-    - Ventas (VT) y tráfico (ET) de referencia
+    - Viviendas (VT) y Empleos (ET) de referencia
     - Top 10 alternativas con métricas completas
     - Visualizaciones interactivas del modelo estadístico
     - Opción de descargar resultados completos
+    
+    ### 📝 Nota sobre las columnas:
+    - **VT** = Viviendas Totales en el área de influencia
+    - **ET** = Empleos Totales en el área de influencia
     """)
 
 # Footer
