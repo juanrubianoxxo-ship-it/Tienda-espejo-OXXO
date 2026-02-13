@@ -7,11 +7,20 @@ from scipy.spatial.distance import cdist
 import io
 import plotly.express as px
 import plotly.graph_objects as go
+import os
 
 # Configuración de la página
+# Si tienes el favicon, nómbralo "favicon.png" y colócalo en la misma carpeta
+if os.path.exists('favicon.png'):
+    page_icon_config = "favicon.png"
+elif os.path.exists('logo_oxxo.png'):
+    page_icon_config = "logo_oxxo.png"
+else:
+    page_icon_config = "🏪"  # Fallback a emoji si no hay logo
+
 st.set_page_config(
     page_title="Modelo de Tienda Espejo OXXO",
-    page_icon="🏪",
+    page_icon=page_icon_config,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -74,11 +83,36 @@ st.markdown("""
     
     /* Sidebar */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+        background: #1a1a1a !important;
     }
     
     [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-        color: #ED1C24;
+        color: #FFD100;
+    }
+    
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] label, [data-testid="stSidebar"] span {
+        color: #ffffff !important;
+    }
+    
+    /* Checkbox en sidebar */
+    [data-testid="stSidebar"] .stCheckbox label {
+        color: #ffffff !important;
+    }
+    
+    /* Sliders en sidebar */
+    [data-testid="stSidebar"] .stSlider label {
+        color: #ffffff !important;
+    }
+    
+    /* File uploader en sidebar */
+    [data-testid="stSidebar"] .stFileUploader label {
+        color: #ffffff !important;
+    }
+    
+    /* Expander en sidebar */
+    [data-testid="stSidebar"] .streamlit-expanderHeader {
+        background-color: #2a2a2a;
+        color: #FFD100 !important;
     }
     
     /* Tabs */
@@ -123,9 +157,15 @@ st.markdown("""
         border-width: 2px;
     }
     
+    /* Divider en sidebar */
+    [data-testid="stSidebar"] hr {
+        border-color: #ED1C24;
+        border-width: 2px;
+    }
+    
     /* Cards */
     .metric-card {
-        background: black;
+        background: white;
         padding: 1rem;
         border-radius: 8px;
         border-left: 4px solid #ED1C24;
@@ -144,6 +184,25 @@ st.markdown("""
     .stDownloadButton>button:hover {
         background-color: #e6bb00;
     }
+    
+    /* Textos en sidebar oscuro */
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #ffffff;
+    }
+    
+    [data-testid="stSidebar"] .stCaption {
+        color: #cccccc !important;
+    }
+    
+    /* Valores de sliders en sidebar */
+    [data-testid="stSidebar"] [data-baseweb="slider"] {
+        color: #ffffff;
+    }
+    
+    /* Números en sliders */
+    [data-testid="stSidebar"] [data-testid="stTickBar"] {
+        color: #ffffff;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -152,17 +211,17 @@ col_logo, col_title = st.columns([1, 4])
 
 with col_logo:
     # Aquí puedes agregar el logo de OXXO si tienes la imagen
-    st.image("logo_oxxo.png", width=150)
-    #st.markdown("""
-        #<div style='background-color: #ED1C24; padding: 20px; border-radius: 10px; text-align: center;'>
-            #<h1 style='color: #FFD100; margin: 0; font-size: 3rem; font-weight: bold;'>OXXO</h1>
-        #</div>
-    #""", unsafe_allow_html=True)
+    # st.image("logo_oxxo.png", width=150)
+    st.markdown("""
+        <div style='background-color: #ED1C24; padding: 20px; border-radius: 10px; text-align: center;'>
+            <h1 style='color: #FFD100; margin: 0; font-size: 3rem; font-weight: bold;'>OXXO</h1>
+        </div>
+    """, unsafe_allow_html=True)
 
 with col_title:
     st.markdown("""
         <div class='main-header'>
-            <h1>Modelo de Tienda Espejo</h1>
+            <h1>🏪 Modelo de Tienda Espejo</h1>
             <p>Encuentra la tienda operativa más similar a tu propuesta</p>
         </div>
     """, unsafe_allow_html=True)
@@ -349,7 +408,12 @@ with st.sidebar:
     if usar_ejemplo:
         try:
             df = pd.read_excel('Book.xlsx')
-            st.success(f"✅ {len(df)} tiendas cargadas")
+            st.markdown(f"""
+                <div style='background-color: #ED1C24; padding: 0.8rem; border-radius: 5px; 
+                            color: white; border-left: 4px solid #FFD100;'>
+                    ✅ <strong>{len(df)}</strong> tiendas cargadas
+                </div>
+            """, unsafe_allow_html=True)
         except:
             st.warning("⚠️ Carga tu archivo Excel abajo")
             usar_ejemplo = False
@@ -358,7 +422,12 @@ with st.sidebar:
         uploaded_file = st.file_uploader("Sube tu archivo Excel", type=['xlsx', 'xls'])
         if uploaded_file:
             df = pd.read_excel(uploaded_file)
-            st.success(f"✅ {len(df)} tiendas cargadas")
+            st.markdown(f"""
+                <div style='background-color: #ED1C24; padding: 0.8rem; border-radius: 5px; 
+                            color: white; border-left: 4px solid #FFD100;'>
+                    ✅ <strong>{len(df)}</strong> tiendas cargadas
+                </div>
+            """, unsafe_allow_html=True)
         else:
             df = None
     
@@ -366,7 +435,12 @@ with st.sidebar:
         st.divider()
         st.header("⚙️ Configuración de Pesos")
         st.caption("Ajusta la importancia de cada característica")
-        st.info("💡 Los pesos se normalizan automáticamente para sumar 100%")
+        st.markdown("""
+            <div style='background-color: #FFD100; padding: 0.8rem; border-radius: 5px; 
+                        color: #1a1a1a; border-left: 4px solid #ED1C24;'>
+                💡 Los pesos se normalizan automáticamente para sumar 100%
+            </div>
+        """, unsafe_allow_html=True)
         
         peso_seg = st.slider("Segmento (filtro obligatorio)", 0, 100, 30, disabled=True, 
                             help="Las tiendas se filtran obligatoriamente por el mismo segmento")
@@ -897,6 +971,6 @@ st.divider()
 st.markdown("""
     <div style='text-align: center; padding: 20px; background: linear-gradient(90deg, #ED1C24 0%, #C41E3A 100%); border-radius: 10px;'>
         <h3 style='color: #FFD100; margin: 0;'>🏪 Modelo de Tienda Espejo OXXO</h3>
-        <p style='color: white; margin: 0.5rem 0 0 0;'>v2.0 | by: Juan Camilo Rubiano Usaquén </p>
+        <p style='color: white; margin: 0.5rem 0 0 0;'>v2.0 | Análisis Estadístico Avanzado</p>
     </div>
 """, unsafe_allow_html=True)
