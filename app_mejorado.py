@@ -135,7 +135,11 @@ def calcular_estadisticas(df_resultado, nueva_tienda):
     Calcula estadísticas descriptivas del top de tiendas espejo
     """
     top_10 = df_resultado.head(10)
-    
+    renta_col = None
+    for col in df_resultado.columns:
+        if 'RENTA' in col.upper():
+            renta_col = col
+            break    
     stats = {
         'VT_promedio': top_10['VT'].mean(),
         'VT_std': top_10['VT'].std(),
@@ -318,6 +322,7 @@ if df is not None:
                     st.metric("VT", f"{mejor['VT']:,.0f}")
                     st.metric("ET", f"{mejor['ET']:,.0f}")
                 with c4:
+                    renta_col = stats.get('renta_col', 'RENTA')
                     st.metric("Renta", f"${mejor['RENTA']:,.0f}")
                     st.metric("Área", f"{mejor['AREA']:.1f} m²")
                 
@@ -363,6 +368,7 @@ if df is not None:
                 st.markdown("### 📋 Top 10 Alternativas")
                 
                 # Preparar dataframe para mostrar
+                renta_col = stats.get('renta_col', 'RENTA')
                 top_10 = resultado.head(10)[['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO', 
                                               'TIPO DE LOCAL', 'AREA', 'VIVIENDAS', 'EMPLEOS',
                                               'VT', 'ET', 'RENTA', 'SIMILITUD', 'DISTANCIA']]
@@ -376,7 +382,7 @@ if df is not None:
                 top_10_display['EMPLEOS'] = top_10_display['EMPLEOS'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['VT'] = top_10_display['VT'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['ET'] = top_10_display['ET'].apply(lambda x: f"{x:,.0f}")
-                top_10_display['RENTA'] = top_10_display['RENTA'].apply(lambda x: f"${x:,.0f}")
+                top_10_display[renta_col] = top_10_display[renta_col].apply(lambda x: f"${x:,.0f}")
                 
                 st.dataframe(top_10_display, use_container_width=True, hide_index=True)
                 
