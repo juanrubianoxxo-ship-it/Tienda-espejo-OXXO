@@ -82,12 +82,13 @@ with col_title:
 
 
 # ──────────────────────────────────────────────
-# MODELO ESTADÍSTICO ACTUALIZADO
+# MODELO ESTADÍSTICO
+# Columnas reales del Excel: VU6M (ventas últimos 6 meses), TRU6 (tráfico últimos 6 meses)
 # ──────────────────────────────────────────────
 def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
     """
     Distancia euclidiana ponderada normalizada.
-    Variables numéricas: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VENTA_PROYECTADA, TRAFICO
+    Variables numéricas: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VU6M, TRU6
     Variables categóricas: ZONA, TIPO DE LOCAL, GENERADOR, MUN
     """
     if pesos is None:
@@ -101,8 +102,8 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
             'MUN': 0.06,
             'VIVIENDAS': 0.06,
             'EMPLEOS': 0.06,
-            'VENTA_PROYECTADA': 0.12,
-            'TRAFICO': 0.10
+            'VU6M': 0.12,
+            'TRU6': 0.10
         }
 
     df_filtrado = df[df['SEG26'] == nueva_tienda['SEG26']].copy()
@@ -111,9 +112,8 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
         return None, "No se encontraron tiendas en el mismo segmento"
 
     # ── Variables numéricas ──
-    vars_numericas = ['ESTRATO', 'AREA', 'VIVIENDAS', 'EMPLEOS', 'VENTA_PROYECTADA', 'TRAFICO']
+    vars_numericas = ['ESTRATO', 'AREA', 'VIVIENDAS', 'EMPLEOS', 'VU6M', 'TRU6']
 
-    # Asegurarse de que las columnas existen en df_filtrado (con 0 si faltan)
     for v in vars_numericas:
         if v not in df_filtrado.columns:
             df_filtrado[v] = 0
@@ -124,8 +124,8 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
         nueva_tienda['AREA'],
         nueva_tienda['VIVIENDAS'],
         nueva_tienda['EMPLEOS'],
-        nueva_tienda['VENTA_PROYECTADA'],
-        nueva_tienda['TRAFICO']
+        nueva_tienda['VU6M'],
+        nueva_tienda['TRU6']
     ]])
 
     scaler = StandardScaler()
@@ -143,14 +143,14 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
     X_df_completo = np.hstack([X_num_df_scaled, X_cat_df])
     X_nueva_completo = np.hstack([X_num_nueva_scaled, X_cat_nueva])
 
-    # ── Pesos (orden: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VENTA_PROYECTADA, TRAFICO, ZONA, TIPO, GEN, MUN) ──
+    # ── Pesos (orden: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VU6M, TRU6, ZONA, TIPO, GEN, MUN) ──
     peso_vector = np.array([
         pesos.get('ESTRATO', 0.08),
         pesos.get('AREA', 0.08),
         pesos.get('VIVIENDAS', 0.06),
         pesos.get('EMPLEOS', 0.06),
-        pesos.get('VENTA_PROYECTADA', 0.12),
-        pesos.get('TRAFICO', 0.10),
+        pesos.get('VU6M', 0.12),
+        pesos.get('TRU6', 0.10),
         pesos.get('ZONA', 0.10),
         pesos.get('TIPO DE LOCAL', 0.07),
         pesos.get('GENERADOR', 0.07),
@@ -192,10 +192,10 @@ def calcular_estadisticas(df_resultado, nueva_tienda):
         'VT_std': top_10['VT'].std(),
         'ET_promedio': top_10['ET'].mean(),
         'ET_std': top_10['ET'].std(),
-        'VENTA_promedio': top_10['VENTA_PROYECTADA'].mean() if 'VENTA_PROYECTADA' in top_10.columns else 0,
-        'VENTA_std': top_10['VENTA_PROYECTADA'].std() if 'VENTA_PROYECTADA' in top_10.columns else 0,
-        'TRAFICO_promedio': top_10['TRAFICO'].mean() if 'TRAFICO' in top_10.columns else 0,
-        'TRAFICO_std': top_10['TRAFICO'].std() if 'TRAFICO' in top_10.columns else 0,
+        'VU6M_promedio': top_10['VU6M'].mean() if 'VU6M' in top_10.columns else 0,
+        'VU6M_std': top_10['VU6M'].std() if 'VU6M' in top_10.columns else 0,
+        'TRU6_promedio': top_10['TRU6'].mean() if 'TRU6' in top_10.columns else 0,
+        'TRU6_std': top_10['TRU6'].std() if 'TRU6' in top_10.columns else 0,
         'RENTA_promedio': top_10[renta_col].mean() if renta_col and renta_col in top_10.columns else 0,
         'RENTA_std': top_10[renta_col].std() if renta_col and renta_col in top_10.columns else 0,
         'AREA_promedio': top_10['AREA'].mean(),
@@ -261,26 +261,26 @@ with st.sidebar:
         peso_empleos   = st.slider("Empleos Totales (ET)", 0, 100, 6)
 
         st.markdown("---")
-        st.markdown("**🆕 Nuevas Variables**")
-        peso_venta   = st.slider("💰 Venta Proyectada", 0, 100, 12)
-        peso_trafico = st.slider("🚶 Tráfico", 0, 100, 10)
+        st.markdown("**📊 Variables de Rendimiento (últimos 6 meses)**")
+        peso_vu6m = st.slider("💰 Ventas Últ. 6 Meses (VU6M)", 0, 100, 12)
+        peso_tru6 = st.slider("🚶 Tráfico Últ. 6 Meses (TRU6)", 0, 100, 10)
 
         total = (peso_zona + peso_estrato + peso_tipo + peso_area + peso_generador +
-                 peso_mun + peso_viviendas + peso_empleos + peso_venta + peso_trafico)
+                 peso_mun + peso_viviendas + peso_empleos + peso_vu6m + peso_tru6)
 
         if total > 0:
             pesos = {
                 'SEG26': 0.30,
-                'ZONA':            peso_zona      / total * 0.70,
-                'ESTRATO':         peso_estrato   / total * 0.70,
-                'TIPO DE LOCAL':   peso_tipo      / total * 0.70,
-                'AREA':            peso_area      / total * 0.70,
-                'GENERADOR':       peso_generador / total * 0.70,
-                'MUN':             peso_mun       / total * 0.70,
-                'VIVIENDAS':       peso_viviendas / total * 0.70,
-                'EMPLEOS':         peso_empleos   / total * 0.70,
-                'VENTA_PROYECTADA': peso_venta    / total * 0.70,
-                'TRAFICO':         peso_trafico   / total * 0.70,
+                'ZONA':          peso_zona      / total * 0.70,
+                'ESTRATO':       peso_estrato   / total * 0.70,
+                'TIPO DE LOCAL': peso_tipo      / total * 0.70,
+                'AREA':          peso_area      / total * 0.70,
+                'GENERADOR':     peso_generador / total * 0.70,
+                'MUN':           peso_mun       / total * 0.70,
+                'VIVIENDAS':     peso_viviendas / total * 0.70,
+                'EMPLEOS':       peso_empleos   / total * 0.70,
+                'VU6M':          peso_vu6m      / total * 0.70,
+                'TRU6':          peso_tru6      / total * 0.70,
             }
         else:
             pesos = None
@@ -295,17 +295,17 @@ with st.sidebar:
 # CONTENIDO PRINCIPAL
 # ──────────────────────────────────────────────
 if df is not None:
-    columnas_requeridas = ['SEG26', 'ZONA', 'MUN', 'ESTRATO', 'TIPO DE LOCAL',
-                           'AREA', 'GENERADOR', 'VT', 'ET', 'CR', 'NAME']
 
     df['VIVIENDAS'] = df['VT']
     df['EMPLEOS']   = df['ET']
 
-    # Columnas nuevas: si no existen en el Excel, iniciar en 0
-    if 'VENTA_PROYECTADA' not in df.columns:
-        df['VENTA_PROYECTADA'] = 0
-    if 'TRAFICO' not in df.columns:
-        df['TRAFICO'] = 0
+    # Columnas VU6M y TRU6: si no existen en el Excel, iniciar en 0
+    if 'VU6M' not in df.columns:
+        df['VU6M'] = 0
+        st.warning("⚠️ No se encontró la columna **VU6M** (Ventas últimos 6 meses) en el Excel. Se usará 0.")
+    if 'TRU6' not in df.columns:
+        df['TRU6'] = 0
+        st.warning("⚠️ No se encontró la columna **TRU6** (Tráfico últimos 6 meses) en el Excel. Se usará 0.")
 
     renta_col_disponible = None
     for col in df.columns:
@@ -335,19 +335,19 @@ if df is not None:
             st.markdown("##### Métricas Numéricas")
             col_a, col_b = st.columns(2)
             with col_a:
-                area       = st.number_input("Área (m²)",           min_value=0.0,  value=100.0, step=10.0)
-                viviendas  = st.number_input("Viviendas Totales",   min_value=0,    value=1000,  step=100)
-                empleos    = st.number_input("Empleos Totales",     min_value=0,    value=500,   step=50)
+                area      = st.number_input("Área (m²)",         min_value=0.0, value=100.0, step=10.0)
+                viviendas = st.number_input("Viviendas Totales", min_value=0,   value=1000,  step=100)
+                empleos   = st.number_input("Empleos Totales",   min_value=0,   value=500,   step=50)
             with col_b:
-                venta_proyectada = st.number_input(
-                    "💰 Venta Proyectada ($)",
+                vu6m = st.number_input(
+                    "💰 Ventas Últ. 6 Meses ($)",
                     min_value=0.0, value=0.0, step=1000.0,
-                    help="Venta mensual o diaria proyectada para la nueva tienda"
+                    help="Venta acumulada de los últimos 6 meses (VU6M) esperada para la nueva tienda"
                 )
-                trafico = st.number_input(
-                    "🚶 Tráfico (personas/día)",
-                    min_value=0, value=0, step=50,
-                    help="Número estimado de personas por día que pasarían por la tienda"
+                tru6 = st.number_input(
+                    "🚶 Tráfico Últ. 6 Meses",
+                    min_value=0, value=0, step=100,
+                    help="Número de personas estimadas en los últimos 6 meses (TRU6)"
                 )
 
             submitted = st.form_submit_button("🔍 Buscar Tienda Espejo", use_container_width=True)
@@ -357,18 +357,18 @@ if df is not None:
 
         if submitted:
             nueva_tienda = {
-                'NAME':             nombre_nueva,
-                'SEG26':            segmento,
-                'ZONA':             zona,
-                'MUN':              municipio,
-                'ESTRATO':          estrato,
-                'TIPO DE LOCAL':    tipo_local,
-                'AREA':             area,
-                'GENERADOR':        generador,
-                'VIVIENDAS':        viviendas,
-                'EMPLEOS':          empleos,
-                'VENTA_PROYECTADA': venta_proyectada,
-                'TRAFICO':          trafico,
+                'NAME':      nombre_nueva,
+                'SEG26':     segmento,
+                'ZONA':      zona,
+                'MUN':       municipio,
+                'ESTRATO':   estrato,
+                'TIPO DE LOCAL': tipo_local,
+                'AREA':      area,
+                'GENERADOR': generador,
+                'VIVIENDAS': viviendas,
+                'EMPLEOS':   empleos,
+                'VU6M':      vu6m,
+                'TRU6':      tru6,
             }
 
             resultado, error = calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos)
@@ -376,7 +376,7 @@ if df is not None:
             if error:
                 st.error(error)
             else:
-                stats    = calcular_estadisticas(resultado, nueva_tienda)
+                stats     = calcular_estadisticas(resultado, nueva_tienda)
                 renta_col = stats['renta_col']
 
                 st.success("✅ Tiendas espejo encontradas usando modelo estadístico")
@@ -386,8 +386,8 @@ if df is not None:
 
                 c1, c2, c3, c4 = st.columns(4)
                 with c1:
-                    st.metric("Nombre",   mejor['NAME'])
-                    st.metric("Código",   mejor['CR'])
+                    st.metric("Nombre", mejor['NAME'])
+                    st.metric("Código", mejor['CR'])
                 with c2:
                     st.metric("Similitud",  f"{mejor['SIMILITUD']:.1f}%")
                     st.metric("Distancia",  f"{mejor['DISTANCIA']:.3f}")
@@ -395,10 +395,10 @@ if df is not None:
                     st.metric("Viviendas (VT)", f"{mejor['VT']:,.0f}")
                     st.metric("Empleos (ET)",   f"{mejor['ET']:,.0f}")
                 with c4:
-                    venta_val   = mejor['VENTA_PROYECTADA'] if 'VENTA_PROYECTADA' in mejor.index else 0
-                    trafico_val = mejor['TRAFICO'] if 'TRAFICO' in mejor.index else 0
-                    st.metric("Venta Real",  f"${venta_val:,.0f}")
-                    st.metric("Tráfico Real", f"{trafico_val:,.0f}")
+                    vu6m_val = mejor['VU6M'] if 'VU6M' in mejor.index else 0
+                    tru6_val = mejor['TRU6'] if 'TRU6' in mejor.index else 0
+                    st.metric("💰 Ventas U6M",  f"${vu6m_val:,.0f}")
+                    st.metric("🚶 Tráfico U6M", f"{tru6_val:,.0f}")
 
                 with st.expander("📊 Ver detalles completos de la mejor tienda", expanded=False):
                     col_det1, col_det2 = st.columns(2)
@@ -407,13 +407,13 @@ if df is not None:
                         st.write(f"**Zona:** {mejor['ZONA']}")
                         st.write(f"**Municipio:** {mejor['MUN']}")
                         st.write(f"**Estrato:** {mejor['ESTRATO']}")
-                        st.write(f"**Venta Real:** ${venta_val:,.0f}")
+                        st.write(f"**💰 Ventas Últ. 6 Meses (VU6M):** ${vu6m_val:,.0f}")
                     with col_det2:
                         st.write(f"**Tipo de Local:** {mejor['TIPO DE LOCAL']}")
                         st.write(f"**Generador:** {mejor['GENERADOR']}")
                         st.write(f"**Viviendas (VT):** {mejor['VT']:,.0f}")
                         st.write(f"**Empleos (ET):** {mejor['ET']:,.0f}")
-                        st.write(f"**Tráfico Real:** {trafico_val:,.0f}")
+                        st.write(f"**🚶 Tráfico Últ. 6 Meses (TRU6):** {tru6_val:,.0f}")
 
                 st.divider()
 
@@ -427,10 +427,10 @@ if df is not None:
                     st.metric("Empleos Prom (ET)", f"{stats['ET_promedio']:,.0f}")
                     st.caption(f"±{stats['ET_std']:,.0f}")
                 with col_s3:
-                    st.metric("Venta Prom", f"${stats['VENTA_promedio']:,.0f}")
-                    st.caption(f"±{stats['VENTA_std']:,.0f}")
+                    st.metric("💰 Ventas U6M Prom", f"${stats['VU6M_promedio']:,.0f}")
+                    st.caption(f"±{stats['VU6M_std']:,.0f}")
                 with col_s4:
-                    st.metric("Tráfico Prom", f"{stats['TRAFICO_promedio']:,.0f}")
+                    st.metric("🚶 Tráfico U6M Prom", f"{stats['TRU6_promedio']:,.0f}")
                     st.caption(f"Similitud: {stats['similitud_promedio']:.1f}%")
 
                 st.divider()
@@ -440,34 +440,33 @@ if df is not None:
 
                 columnas_mostrar = ['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO',
                                     'TIPO DE LOCAL', 'AREA', 'VT', 'ET',
-                                    'VENTA_PROYECTADA', 'TRAFICO', 'SIMILITUD', 'DISTANCIA']
+                                    'VU6M', 'TRU6', 'SIMILITUD', 'DISTANCIA']
 
                 if renta_col in resultado.columns and renta_col not in columnas_mostrar:
                     columnas_mostrar.insert(-2, renta_col)
 
-                # Solo incluir columnas que realmente existen
                 columnas_mostrar = [c for c in columnas_mostrar if c in resultado.columns]
 
-                top_10 = resultado.head(10)[columnas_mostrar]
+                top_10     = resultado.head(10)[columnas_mostrar]
                 top_10_display = top_10.copy()
 
-                top_10_display['SIMILITUD']        = top_10_display['SIMILITUD'].apply(lambda x: f"{x:.1f}%")
-                top_10_display['DISTANCIA']        = top_10_display['DISTANCIA'].apply(lambda x: f"{x:.3f}")
-                top_10_display['AREA']             = top_10_display['AREA'].apply(lambda x: f"{x:.1f}")
-                top_10_display['VT']               = top_10_display['VT'].apply(lambda x: f"{x:,.0f}")
-                top_10_display['ET']               = top_10_display['ET'].apply(lambda x: f"{x:,.0f}")
-                if 'VENTA_PROYECTADA' in top_10_display.columns:
-                    top_10_display['VENTA_PROYECTADA'] = top_10_display['VENTA_PROYECTADA'].apply(lambda x: f"${x:,.0f}")
-                if 'TRAFICO' in top_10_display.columns:
-                    top_10_display['TRAFICO']      = top_10_display['TRAFICO'].apply(lambda x: f"{x:,.0f}")
+                top_10_display['SIMILITUD'] = top_10_display['SIMILITUD'].apply(lambda x: f"{x:.1f}%")
+                top_10_display['DISTANCIA'] = top_10_display['DISTANCIA'].apply(lambda x: f"{x:.3f}")
+                top_10_display['AREA']      = top_10_display['AREA'].apply(lambda x: f"{x:.1f}")
+                top_10_display['VT']        = top_10_display['VT'].apply(lambda x: f"{x:,.0f}")
+                top_10_display['ET']        = top_10_display['ET'].apply(lambda x: f"{x:,.0f}")
+                if 'VU6M' in top_10_display.columns:
+                    top_10_display['VU6M']  = top_10_display['VU6M'].apply(lambda x: f"${x:,.0f}")
+                if 'TRU6' in top_10_display.columns:
+                    top_10_display['TRU6']  = top_10_display['TRU6'].apply(lambda x: f"{x:,.0f}")
                 if renta_col in top_10_display.columns:
                     top_10_display[renta_col] = top_10_display[renta_col].apply(lambda x: f"${x:,.0f}")
 
                 top_10_display = top_10_display.rename(columns={
-                    'VT': 'Viviendas (VT)',
-                    'ET': 'Empleos (ET)',
-                    'VENTA_PROYECTADA': 'Venta Real ($)',
-                    'TRAFICO': 'Tráfico/día'
+                    'VT':   'Viviendas (VT)',
+                    'ET':   'Empleos (ET)',
+                    'VU6M': '💰 Ventas U6M ($)',
+                    'TRU6': '🚶 Tráfico U6M'
                 })
 
                 st.dataframe(top_10_display, use_container_width=True, hide_index=True)
@@ -487,7 +486,7 @@ if df is not None:
 
                 tab1, tab2, tab3, tab4, tab5 = st.tabs([
                     "Comparación de Métricas",
-                    "Venta & Tráfico",
+                    "Ventas & Tráfico U6M",
                     "Distribución Geográfica",
                     "Análisis de Similitud",
                     "Modelo Estadístico"
@@ -496,8 +495,8 @@ if df is not None:
                 with tab1:
                     top_5 = resultado.head(5)
                     fig_metricas = go.Figure()
-                    fig_metricas.add_trace(go.Bar(name='Viviendas (VT)', x=top_5['NAME'], y=top_5['VT'],          marker_color='#ED1C24'))
-                    fig_metricas.add_trace(go.Bar(name='Empleos (ET)',   x=top_5['NAME'], y=top_5['ET'],          marker_color='#FFD100'))
+                    fig_metricas.add_trace(go.Bar(name='Viviendas (VT)', x=top_5['NAME'], y=top_5['VT'], marker_color='#ED1C24'))
+                    fig_metricas.add_trace(go.Bar(name='Empleos (ET)',   x=top_5['NAME'], y=top_5['ET'], marker_color='#FFD100'))
                     fig_metricas.update_layout(title='Top 5 - Viviendas vs Empleos', barmode='group', height=400,
                                                plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
                     st.plotly_chart(fig_metricas, use_container_width=True)
@@ -505,72 +504,70 @@ if df is not None:
                 with tab2:
                     top_10_raw = resultado.head(10)
 
-                    # Venta Proyectada por tienda
-                    if 'VENTA_PROYECTADA' in top_10_raw.columns:
+                    # Ventas U6M por tienda
+                    if 'VU6M' in top_10_raw.columns:
                         fig_venta = go.Figure()
                         fig_venta.add_trace(go.Bar(
-                            name='Venta Real ($)',
+                            name='Ventas Últ. 6 Meses ($)',
                             x=top_10_raw['NAME'],
-                            y=top_10_raw['VENTA_PROYECTADA'],
+                            y=top_10_raw['VU6M'],
                             marker_color='#ED1C24'
                         ))
-                        # Línea de referencia: venta proyectada de la nueva tienda
-                        if venta_proyectada > 0:
+                        if vu6m > 0:
                             fig_venta.add_hline(
-                                y=venta_proyectada,
+                                y=vu6m,
                                 line_dash="dash",
                                 line_color="#FFD100",
-                                annotation_text=f"Tu propuesta: ${venta_proyectada:,.0f}",
+                                annotation_text=f"Tu propuesta: ${vu6m:,.0f}",
                                 annotation_position="top left"
                             )
                         fig_venta.update_layout(
-                            title='💰 Venta Real de Tiendas Espejo (Top 10)',
+                            title='💰 Ventas Últimos 6 Meses – Tiendas Espejo (Top 10)',
                             xaxis_tickangle=-45, height=400,
                             plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'
                         )
                         st.plotly_chart(fig_venta, use_container_width=True)
 
-                    # Tráfico por tienda
-                    if 'TRAFICO' in top_10_raw.columns:
+                    # Tráfico U6M por tienda
+                    if 'TRU6' in top_10_raw.columns:
                         fig_traf = go.Figure()
                         fig_traf.add_trace(go.Bar(
-                            name='Tráfico/día',
+                            name='Tráfico Últ. 6 Meses',
                             x=top_10_raw['NAME'],
-                            y=top_10_raw['TRAFICO'],
+                            y=top_10_raw['TRU6'],
                             marker_color='#FFD100'
                         ))
-                        if trafico > 0:
+                        if tru6 > 0:
                             fig_traf.add_hline(
-                                y=trafico,
+                                y=tru6,
                                 line_dash="dash",
                                 line_color="#ED1C24",
-                                annotation_text=f"Tu propuesta: {trafico:,}",
+                                annotation_text=f"Tu propuesta: {tru6:,}",
                                 annotation_position="top left"
                             )
                         fig_traf.update_layout(
-                            title='🚶 Tráfico Diario de Tiendas Espejo (Top 10)',
+                            title='🚶 Tráfico Últimos 6 Meses – Tiendas Espejo (Top 10)',
                             xaxis_tickangle=-45, height=400,
                             plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'
                         )
                         st.plotly_chart(fig_traf, use_container_width=True)
 
-                    # Scatter Venta vs Tráfico
-                    if 'VENTA_PROYECTADA' in top_10_raw.columns and 'TRAFICO' in top_10_raw.columns:
+                    # Scatter Ventas vs Tráfico
+                    if 'VU6M' in top_10_raw.columns and 'TRU6' in top_10_raw.columns:
                         fig_vt = px.scatter(
                             top_10_raw,
-                            x='TRAFICO',
-                            y='VENTA_PROYECTADA',
+                            x='TRU6',
+                            y='VU6M',
                             size='AREA',
                             color='SIMILITUD',
                             hover_data=['NAME', 'ZONA'],
-                            title='Venta vs Tráfico (Tamaño = Área, Color = Similitud)',
-                            labels={'TRAFICO': 'Tráfico/día', 'VENTA_PROYECTADA': 'Venta ($)'},
+                            title='Ventas vs Tráfico U6M (Tamaño = Área, Color = Similitud)',
+                            labels={'TRU6': 'Tráfico Últ. 6 Meses', 'VU6M': 'Ventas U6M ($)'},
                             color_continuous_scale=['#C41E3A', '#ED1C24', '#FFD100', '#28a745']
                         )
-                        # Punto de la nueva tienda
-                        if venta_proyectada > 0 or trafico > 0:
+                        if vu6m > 0 or tru6 > 0:
                             fig_vt.add_trace(go.Scatter(
-                                x=[trafico], y=[venta_proyectada],
+                                x=[tru6], y=[vu6m],
                                 mode='markers',
                                 marker=dict(color='blue', size=14, symbol='star'),
                                 name='Tu propuesta'
@@ -606,26 +603,28 @@ if df is not None:
                     st.plotly_chart(fig_sim, use_container_width=True)
 
                     st.markdown("#### 📋 Comparación con Tienda Espejo")
+                    vu6m_val2 = mejor.get('VU6M', 0)
+                    tru6_val2 = mejor.get('TRU6', 0)
                     comparacion = pd.DataFrame({
                         'Característica': ['Segmento', 'Zona', 'Municipio', 'Estrato',
                                            'Tipo de Local', 'Generador', 'Área',
                                            'Viviendas (VT)', 'Empleos (ET)',
-                                           '💰 Venta Proyectada', '🚶 Tráfico'],
+                                           '💰 Ventas U6M ($)', '🚶 Tráfico U6M'],
                         'Tu Propuesta': [
                             nueva_tienda['SEG26'], nueva_tienda['ZONA'], nueva_tienda['MUN'],
                             nueva_tienda['ESTRATO'], nueva_tienda['TIPO DE LOCAL'], nueva_tienda['GENERADOR'],
                             f"{nueva_tienda['AREA']:.1f} m²",
                             f"{nueva_tienda['VIVIENDAS']:,}", f"{nueva_tienda['EMPLEOS']:,}",
-                            f"${nueva_tienda['VENTA_PROYECTADA']:,.0f}",
-                            f"{nueva_tienda['TRAFICO']:,}"
+                            f"${nueva_tienda['VU6M']:,.0f}",
+                            f"{nueva_tienda['TRU6']:,}"
                         ],
                         'Tienda Espejo': [
                             mejor['SEG26'], mejor['ZONA'], mejor['MUN'],
                             mejor['ESTRATO'], mejor['TIPO DE LOCAL'], mejor['GENERADOR'],
                             f"{mejor['AREA']:.1f} m²",
                             f"{mejor['VT']:,.0f}", f"{mejor['ET']:,.0f}",
-                            f"${mejor.get('VENTA_PROYECTADA', 0):,.0f}",
-                            f"{mejor.get('TRAFICO', 0):,.0f}"
+                            f"${vu6m_val2:,.0f}",
+                            f"{tru6_val2:,.0f}"
                         ],
                         'Coincide / Diferencia': [
                             '✅' if nueva_tienda['SEG26'] == mejor['SEG26'] else '❌',
@@ -637,8 +636,8 @@ if df is not None:
                             f"{abs(nueva_tienda['AREA'] - mejor['AREA']):.1f} m²",
                             f"{abs(nueva_tienda['VIVIENDAS'] - mejor['VT']):,.0f}",
                             f"{abs(nueva_tienda['EMPLEOS'] - mejor['ET']):,.0f}",
-                            f"${abs(nueva_tienda['VENTA_PROYECTADA'] - mejor.get('VENTA_PROYECTADA', 0)):,.0f}",
-                            f"{abs(nueva_tienda['TRAFICO'] - mejor.get('TRAFICO', 0)):,.0f}"
+                            f"${abs(nueva_tienda['VU6M'] - vu6m_val2):,.0f}",
+                            f"{abs(nueva_tienda['TRU6'] - tru6_val2):,.0f}"
                         ]
                     })
                     st.dataframe(comparacion, use_container_width=True, hide_index=True)
@@ -654,7 +653,7 @@ if df is not None:
                     5. **Distancia euclidiana** en espacio multidimensional
                     6. **Similitud** = inversión normalizada a 0-100%
                     
-                    **Variables numéricas:** ESTRATO, ÁREA, VIVIENDAS, EMPLEOS, **VENTA PROYECTADA**, **TRÁFICO**
+                    **Variables numéricas:** ESTRATO, ÁREA, VIVIENDAS, EMPLEOS, **VU6M** (Ventas Últ. 6 Meses), **TRU6** (Tráfico Últ. 6 Meses)
                     
                     **Variables categóricas:** ZONA, TIPO DE LOCAL, GENERADOR, MUNICIPIO
                     """)
@@ -677,13 +676,13 @@ else:
     st.markdown("""
     ### 📖 Cómo usar esta herramienta:
     1. **Carga tu archivo Excel** en la barra lateral (o usa los datos precargados)
-    2. **Completa los datos** de la nueva tienda, incluyendo **Venta Proyectada** y **Tráfico**
+    2. **Completa los datos** de la nueva tienda, incluyendo **VU6M** y **TRU6**
     3. **Ajusta los pesos** en el sidebar
     4. **Haz clic en "Buscar Tienda Espejo"**
     
-    ### 🆕 Nuevas Variables:
-    - 💰 **VENTA_PROYECTADA** — Venta real de cada tienda en tu base de datos
-    - 🚶 **TRAFICO** — Tráfico diario real de cada tienda
+    ### 📊 Columnas requeridas en el Excel:
+    - **VU6M** — Ventas acumuladas de los últimos 6 meses por tienda
+    - **TRU6** — Tráfico acumulado de los últimos 6 meses por tienda
     
     Asegúrate de que tu archivo Excel incluya estas columnas con esos nombres exactos.
     """)
@@ -693,6 +692,6 @@ st.divider()
 st.markdown("""
     <div style='text-align: center; padding: 20px; background: linear-gradient(90deg, #ED1C24 0%, #C41E3A 100%); border-radius: 10px;'>
         <h3 style='color: #FFD100; margin: 0;'>🏪 Modelo de Tienda Espejo OXXO</h3>
-        <p style='color: white; margin: 0.5rem 0 0 0;'>v3.0 | Con Venta Proyectada & Tráfico</p>
+        <p style='color: white; margin: 0.5rem 0 0 0;'>v4.0 | VU6M & TRU6 (Últimos 6 Meses)</p>
     </div>
 """, unsafe_allow_html=True)
