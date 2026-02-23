@@ -261,9 +261,9 @@ with st.sidebar:
         peso_empleos   = st.slider("Empleos Totales (ET)", 0, 100, 6)
 
         st.markdown("---")
-        st.markdown("**📊 Variables de Rendimiento (últimos 6 meses)**")
-        peso_vu6m = st.slider("💰 Ventas Últ. 6 Meses (VU6M)", 0, 100, 12)
-        peso_tru6 = st.slider("🚶 Tráfico Últ. 6 Meses (TRU6)", 0, 100, 10)
+        st.markdown("**📊 Variables de Rendimiento**")
+        peso_vu6m = st.slider("💰 Venta Proyectada", 0, 100, 12)
+        peso_tru6 = st.slider("🚶 Tráfico Proyectado", 0, 100, 10)
 
         total = (peso_zona + peso_estrato + peso_tipo + peso_area + peso_generador +
                  peso_mun + peso_viviendas + peso_empleos + peso_vu6m + peso_tru6)
@@ -340,14 +340,14 @@ if df is not None:
                 empleos   = st.number_input("Empleos Totales",   min_value=0,   value=500,   step=50)
             with col_b:
                 vu6m = st.number_input(
-                    "💰 Ventas Últ. 6 Meses ($)",
+                    "💰 Venta Proyectada ($)",
                     min_value=0.0, value=0.0, step=1000.0,
-                    help="Venta acumulada de los últimos 6 meses (VU6M) esperada para la nueva tienda"
+                    help="Venta proyectada para la nueva tienda. Se compara contra VU6M del Excel."
                 )
                 tru6 = st.number_input(
-                    "🚶 Tráfico Últ. 6 Meses",
+                    "🚶 Tráfico Proyectado (personas)",
                     min_value=0, value=0, step=100,
-                    help="Número de personas estimadas en los últimos 6 meses (TRU6)"
+                    help="Tráfico estimado para la nueva tienda. Se compara contra TRU6 del Excel."
                 )
 
             submitted = st.form_submit_button("🔍 Buscar Tienda Espejo", use_container_width=True)
@@ -436,7 +436,7 @@ if df is not None:
                 st.divider()
 
                 # Top 10
-                st.markdown("### 📋 Top 10 Alternativas")
+                st.markdown("### 📋 Top 5 Alternativas")
 
                 columnas_mostrar = ['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO',
                                     'TIPO DE LOCAL', 'AREA', 'VT', 'ET',
@@ -447,7 +447,7 @@ if df is not None:
 
                 columnas_mostrar = [c for c in columnas_mostrar if c in resultado.columns]
 
-                top_10     = resultado.head(10)[columnas_mostrar]
+                top_10     = resultado.head(5)[columnas_mostrar]
                 top_10_display = top_10.copy()
 
                 top_10_display['SIMILITUD'] = top_10_display['SIMILITUD'].apply(lambda x: f"{x:.1f}%")
@@ -471,9 +471,9 @@ if df is not None:
 
                 st.dataframe(top_10_display, use_container_width=True, hide_index=True)
 
-                csv = resultado.head(20).to_csv(index=False)
+                csv = resultado.head(5).to_csv(index=False)
                 st.download_button(
-                    label="📥 Descargar Top 20 (CSV)",
+                    label="📥 Descargar Top 5 (CSV)",
                     data=csv,
                     file_name=f"tiendas_espejo_{nombre_nueva.replace(' ', '_')}.csv",
                     mime="text/csv"
@@ -609,7 +609,7 @@ if df is not None:
                         'Característica': ['Segmento', 'Zona', 'Municipio', 'Estrato',
                                            'Tipo de Local', 'Generador', 'Área',
                                            'Viviendas (VT)', 'Empleos (ET)',
-                                           '💰 Ventas U6M ($)', '🚶 Tráfico U6M'],
+                                           '💰 Venta Proyectada ($)', '🚶 Tráfico Proyectado'],
                         'Tu Propuesta': [
                             nueva_tienda['SEG26'], nueva_tienda['ZONA'], nueva_tienda['MUN'],
                             nueva_tienda['ESTRATO'], nueva_tienda['TIPO DE LOCAL'], nueva_tienda['GENERADOR'],
