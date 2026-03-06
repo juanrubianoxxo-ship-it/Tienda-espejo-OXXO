@@ -692,6 +692,6 @@ st.divider()
 st.markdown("""
     <div style='text-align: center; padding: 20px; background: linear-gradient(90deg, #ED1C24 0%, #C41E3A 100%); border-radius: 10px;'>
         <h3 style='color: #FFD100; margin: 0;'>🏪 Modelo de Tienda Espejo OXXO</h3>
-        <p style='color: white; margin: 0.5rem 0 0 0;'>v4.0 | VU6M & TRU6 (Últimos 6 Meses)</p>
+        <p style='color: white; margin: 0.5rem 0 0 0;'>v4.0 | Oxxo Colombia | Juan C. Rubiano</p>
     </div>
 """, unsafe_allow_html=True)
