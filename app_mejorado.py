@@ -263,10 +263,10 @@ with st.sidebar:
         st.markdown("---")
         st.markdown("**📊 Variables de Rendimiento**")
         peso_VENTAS_OU6M = st.slider("💰 Venta Proyectada", 0, 100, 12)
-        peso_TRAFICO U6M = st.slider("🚶 Tráfico Proyectado", 0, 100, 10)
+        peso_TRAFICO_U6M = st.slider("🚶 Tráfico Proyectado", 0, 100, 10)
 
         total = (peso_zona + peso_estrato + peso_tipo + peso_area + peso_generador +
-                 peso_mun + peso_viviendas + peso_empleos + peso_VENTAS_OU6M + peso_TRAFICO U6M)
+                 peso_mun + peso_viviendas + peso_empleos + peso_VENTAS_OU6M + peso_TRAFICO_U6M)
 
         if total > 0:
             pesos = {
@@ -280,7 +280,7 @@ with st.sidebar:
                 'VIVIENDAS':     peso_viviendas / total * 0.70,
                 'EMPLEOS':       peso_empleos   / total * 0.70,
                 'VENTAS OU6M':          peso_VENTAS_OU6M      / total * 0.70,
-                'TRAFICO U6M':          peso_TRAFICO U6M      / total * 0.70,
+                'TRAFICO U6M':          peso_TRAFICO_U6M      / total * 0.70,
             }
         else:
             pesos = None
