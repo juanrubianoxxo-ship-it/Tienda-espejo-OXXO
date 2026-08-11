@@ -83,12 +83,12 @@ with col_title:
 
 # ──────────────────────────────────────────────
 # MODELO ESTADÍSTICO
-# Columnas reales del Excel: VU6M (ventas últimos 6 meses), TRU6 (tráfico últimos 6 meses)
+# Columnas reales del Excel: VENTAS OU6M (ventas últimos 6 meses), TRAFICO U6M (tráfico últimos 6 meses)
 # ──────────────────────────────────────────────
 def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
     """
     Distancia euclidiana ponderada normalizada.
-    Variables numéricas: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VU6M, TRU6
+    Variables numéricas: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VENTAS OU6M, TRAFICO U6M
     Variables categóricas: ZONA, TIPO DE LOCAL, GENERADOR, MUN
     """
     if pesos is None:
@@ -102,8 +102,8 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
             'MUN': 0.06,
             'VIVIENDAS': 0.06,
             'EMPLEOS': 0.06,
-            'VU6M': 0.12,
-            'TRU6': 0.10
+            'VENTAS OU6M': 0.12,
+            'TRAFICO U6M': 0.10
         }
 
     df_filtrado = df[df['SEG26'] == nueva_tienda['SEG26']].copy()
@@ -112,7 +112,7 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
         return None, "No se encontraron tiendas en el mismo segmento"
 
     # ── Variables numéricas ──
-    vars_numericas = ['ESTRATO', 'AREA', 'VIVIENDAS', 'EMPLEOS', 'VU6M', 'TRU6']
+    vars_numericas = ['ESTRATO', 'AREA', 'VIVIENDAS', 'EMPLEOS', 'VENTAS OU6M', 'TRAFICO U6M']
 
     for v in vars_numericas:
         if v not in df_filtrado.columns:
@@ -124,8 +124,8 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
         nueva_tienda['AREA'],
         nueva_tienda['VIVIENDAS'],
         nueva_tienda['EMPLEOS'],
-        nueva_tienda['VU6M'],
-        nueva_tienda['TRU6']
+        nueva_tienda['VENTAS OU6M'],
+        nueva_tienda['TRAFICO U6M']
     ]])
 
     scaler = StandardScaler()
@@ -143,14 +143,14 @@ def calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos=None):
     X_df_completo = np.hstack([X_num_df_scaled, X_cat_df])
     X_nueva_completo = np.hstack([X_num_nueva_scaled, X_cat_nueva])
 
-    # ── Pesos (orden: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VU6M, TRU6, ZONA, TIPO, GEN, MUN) ──
+    # ── Pesos (orden: ESTRATO, AREA, VIVIENDAS, EMPLEOS, VENTAS OU6M, TRAFICO U6M, ZONA, TIPO, GEN, MUN) ──
     peso_vector = np.array([
         pesos.get('ESTRATO', 0.08),
         pesos.get('AREA', 0.08),
         pesos.get('VIVIENDAS', 0.06),
         pesos.get('EMPLEOS', 0.06),
-        pesos.get('VU6M', 0.12),
-        pesos.get('TRU6', 0.10),
+        pesos.get('VENTAS OU6M', 0.12),
+        pesos.get('TRAFICO U6M', 0.10),
         pesos.get('ZONA', 0.10),
         pesos.get('TIPO DE LOCAL', 0.07),
         pesos.get('GENERADOR', 0.07),
@@ -192,10 +192,10 @@ def calcular_estadisticas(df_resultado, nueva_tienda):
         'VT_std': top_10['VT'].std(),
         'ET_promedio': top_10['ET'].mean(),
         'ET_std': top_10['ET'].std(),
-        'VU6M_promedio': top_10['VU6M'].mean() if 'VU6M' in top_10.columns else 0,
-        'VU6M_std': top_10['VU6M'].std() if 'VU6M' in top_10.columns else 0,
-        'TRU6_promedio': top_10['TRU6'].mean() if 'TRU6' in top_10.columns else 0,
-        'TRU6_std': top_10['TRU6'].std() if 'TRU6' in top_10.columns else 0,
+        'VENTAS OU6M_promedio': top_10['VENTAS OU6M'].mean() if 'VENTAS OU6M' in top_10.columns else 0,
+        'VENTAS OU6M_std': top_10['VENTAS OU6M'].std() if 'VENTAS OU6M' in top_10.columns else 0,
+        'TRAFICO U6M_promedio': top_10['TRAFICO U6M'].mean() if 'TRAFICO U6M' in top_10.columns else 0,
+        'TRAFICO U6M_std': top_10['TRAFICO U6M'].std() if 'TRAFICO U6M' in top_10.columns else 0,
         'RENTA_promedio': top_10[renta_col].mean() if renta_col and renta_col in top_10.columns else 0,
         'RENTA_std': top_10[renta_col].std() if renta_col and renta_col in top_10.columns else 0,
         'AREA_promedio': top_10['AREA'].mean(),
@@ -262,11 +262,11 @@ with st.sidebar:
 
         st.markdown("---")
         st.markdown("**📊 Variables de Rendimiento**")
-        peso_vu6m = st.slider("💰 Venta Proyectada", 0, 100, 12)
-        peso_tru6 = st.slider("🚶 Tráfico Proyectado", 0, 100, 10)
+        peso_VENTAS OU6M = st.slider("💰 Venta Proyectada", 0, 100, 12)
+        peso_TRAFICO U6M = st.slider("🚶 Tráfico Proyectado", 0, 100, 10)
 
         total = (peso_zona + peso_estrato + peso_tipo + peso_area + peso_generador +
-                 peso_mun + peso_viviendas + peso_empleos + peso_vu6m + peso_tru6)
+                 peso_mun + peso_viviendas + peso_empleos + peso_VENTAS OU6M + peso_TRAFICO U6M)
 
         if total > 0:
             pesos = {
@@ -279,8 +279,8 @@ with st.sidebar:
                 'MUN':           peso_mun       / total * 0.70,
                 'VIVIENDAS':     peso_viviendas / total * 0.70,
                 'EMPLEOS':       peso_empleos   / total * 0.70,
-                'VU6M':          peso_vu6m      / total * 0.70,
-                'TRU6':          peso_tru6      / total * 0.70,
+                'VENTAS OU6M':          peso_VENTAS OU6M      / total * 0.70,
+                'TRAFICO U6M':          peso_TRAFICO U6M      / total * 0.70,
             }
         else:
             pesos = None
@@ -299,13 +299,13 @@ if df is not None:
     df['VIVIENDAS'] = df['VT']
     df['EMPLEOS']   = df['ET']
 
-    # Columnas VU6M y TRU6: si no existen en el Excel, iniciar en 0
-    if 'VU6M' not in df.columns:
-        df['VU6M'] = 0
-        st.warning("⚠️ No se encontró la columna **VU6M** (Ventas últimos 6 meses) en el Excel. Se usará 0.")
-    if 'TRU6' not in df.columns:
-        df['TRU6'] = 0
-        st.warning("⚠️ No se encontró la columna **TRU6** (Tráfico últimos 6 meses) en el Excel. Se usará 0.")
+    # Columnas VENTAS OU6M y TRAFICO U6M: si no existen en el Excel, iniciar en 0
+    if 'VENTAS OU6M' not in df.columns:
+        df['VENTAS OU6M'] = 0
+        st.warning("⚠️ No se encontró la columna **VENTAS OU6M** (Ventas últimos 6 meses) en el Excel. Se usará 0.")
+    if 'TRAFICO U6M' not in df.columns:
+        df['TRAFICO U6M'] = 0
+        st.warning("⚠️ No se encontró la columna **TRAFICO U6M** (Tráfico últimos 6 meses) en el Excel. Se usará 0.")
 
     renta_col_disponible = None
     for col in df.columns:
@@ -339,15 +339,15 @@ if df is not None:
                 viviendas = st.number_input("Viviendas Totales", min_value=0,   value=1000,  step=100)
                 empleos   = st.number_input("Empleos Totales",   min_value=0,   value=500,   step=50)
             with col_b:
-                vu6m = st.number_input(
+                VENTAS OU6M = st.number_input(
                     "💰 Venta Proyectada ($)",
                     min_value=0.0, value=0.0, step=1000.0,
-                    help="Venta proyectada para la nueva tienda. Se compara contra VU6M del Excel."
+                    help="Venta proyectada para la nueva tienda. Se compara contra VENTAS OU6M del Excel."
                 )
-                tru6 = st.number_input(
+                TRAFICO U6M = st.number_input(
                     "🚶 Tráfico Proyectado (personas)",
                     min_value=0, value=0, step=100,
-                    help="Tráfico estimado para la nueva tienda. Se compara contra TRU6 del Excel."
+                    help="Tráfico estimado para la nueva tienda. Se compara contra TRAFICO U6M del Excel."
                 )
 
             submitted = st.form_submit_button("🔍 Buscar Tienda Espejo", use_container_width=True)
@@ -367,8 +367,8 @@ if df is not None:
                 'GENERADOR': generador,
                 'VIVIENDAS': viviendas,
                 'EMPLEOS':   empleos,
-                'VU6M':      vu6m,
-                'TRU6':      tru6,
+                'VENTAS OU6M':      VENTAS OU6M,
+                'TRAFICO U6M':      TRAFICO U6M,
             }
 
             resultado, error = calcular_tienda_espejo_estadistico(df, nueva_tienda, pesos)
@@ -395,10 +395,10 @@ if df is not None:
                     st.metric("Viviendas (VT)", f"{mejor['VT']:,.0f}")
                     st.metric("Empleos (ET)",   f"{mejor['ET']:,.0f}")
                 with c4:
-                    vu6m_val = mejor['VU6M'] if 'VU6M' in mejor.index else 0
-                    tru6_val = mejor['TRU6'] if 'TRU6' in mejor.index else 0
-                    st.metric("💰 Ventas U6M",  f"${vu6m_val:,.0f}")
-                    st.metric("🚶 Tráfico U6M", f"{tru6_val:,.0f}")
+                    VENTAS OU6M_val = mejor['VENTAS OU6M'] if 'VENTAS OU6M' in mejor.index else 0
+                    TRAFICO U6M_val = mejor['TRAFICO U6M'] if 'TRAFICO U6M' in mejor.index else 0
+                    st.metric("💰 Ventas U6M",  f"${VENTAS OU6M_val:,.0f}")
+                    st.metric("🚶 Tráfico U6M", f"{TRAFICO U6M_val:,.0f}")
 
                 with st.expander("📊 Ver detalles completos de la mejor tienda", expanded=False):
                     col_det1, col_det2 = st.columns(2)
@@ -407,13 +407,13 @@ if df is not None:
                         st.write(f"**Zona:** {mejor['ZONA']}")
                         st.write(f"**Municipio:** {mejor['MUN']}")
                         st.write(f"**Estrato:** {mejor['ESTRATO']}")
-                        st.write(f"**💰 Ventas Últ. 6 Meses (VU6M):** ${vu6m_val:,.0f}")
+                        st.write(f"**💰 Ventas Últ. 6 Meses (VENTAS OU6M):** ${VENTAS OU6M_val:,.0f}")
                     with col_det2:
                         st.write(f"**Tipo de Local:** {mejor['TIPO DE LOCAL']}")
                         st.write(f"**Generador:** {mejor['GENERADOR']}")
                         st.write(f"**Viviendas (VT):** {mejor['VT']:,.0f}")
                         st.write(f"**Empleos (ET):** {mejor['ET']:,.0f}")
-                        st.write(f"**🚶 Tráfico Últ. 6 Meses (TRU6):** {tru6_val:,.0f}")
+                        st.write(f"**🚶 Tráfico Últ. 6 Meses (TRAFICO U6M):** {TRAFICO U6M_val:,.0f}")
 
                 st.divider()
 
@@ -427,10 +427,10 @@ if df is not None:
                     st.metric("Empleos Prom (ET)", f"{stats['ET_promedio']:,.0f}")
                     st.caption(f"±{stats['ET_std']:,.0f}")
                 with col_s3:
-                    st.metric("💰 Ventas U6M Prom", f"${stats['VU6M_promedio']:,.0f}")
-                    st.caption(f"±{stats['VU6M_std']:,.0f}")
+                    st.metric("💰 Ventas U6M Prom", f"${stats['VENTAS OU6M_promedio']:,.0f}")
+                    st.caption(f"±{stats['VENTAS OU6M_std']:,.0f}")
                 with col_s4:
-                    st.metric("🚶 Tráfico U6M Prom", f"{stats['TRU6_promedio']:,.0f}")
+                    st.metric("🚶 Tráfico U6M Prom", f"{stats['TRAFICO U6M_promedio']:,.0f}")
                     st.caption(f"Similitud: {stats['similitud_promedio']:.1f}%")
 
                 st.divider()
@@ -440,7 +440,7 @@ if df is not None:
 
                 columnas_mostrar = ['CR', 'NAME', 'ZONA', 'MUN', 'ESTRATO',
                                     'TIPO DE LOCAL', 'AREA', 'VT', 'ET',
-                                    'VU6M', 'TRU6', 'SIMILITUD', 'DISTANCIA']
+                                    'VENTAS OU6M', 'TRAFICO U6M', 'SIMILITUD', 'DISTANCIA']
 
                 if renta_col in resultado.columns and renta_col not in columnas_mostrar:
                     columnas_mostrar.insert(-2, renta_col)
@@ -455,18 +455,18 @@ if df is not None:
                 top_10_display['AREA']      = top_10_display['AREA'].apply(lambda x: f"{x:.1f}")
                 top_10_display['VT']        = top_10_display['VT'].apply(lambda x: f"{x:,.0f}")
                 top_10_display['ET']        = top_10_display['ET'].apply(lambda x: f"{x:,.0f}")
-                if 'VU6M' in top_10_display.columns:
-                    top_10_display['VU6M']  = top_10_display['VU6M'].apply(lambda x: f"${x:,.0f}")
-                if 'TRU6' in top_10_display.columns:
-                    top_10_display['TRU6']  = top_10_display['TRU6'].apply(lambda x: f"{x:,.0f}")
+                if 'VENTAS OU6M' in top_10_display.columns:
+                    top_10_display['VENTAS OU6M']  = top_10_display['VENTAS OU6M'].apply(lambda x: f"${x:,.0f}")
+                if 'TRAFICO U6M' in top_10_display.columns:
+                    top_10_display['TRAFICO U6M']  = top_10_display['TRAFICO U6M'].apply(lambda x: f"{x:,.0f}")
                 if renta_col in top_10_display.columns:
                     top_10_display[renta_col] = top_10_display[renta_col].apply(lambda x: f"${x:,.0f}")
 
                 top_10_display = top_10_display.rename(columns={
                     'VT':   'Viviendas (VT)',
                     'ET':   'Empleos (ET)',
-                    'VU6M': '💰 Ventas U6M ($)',
-                    'TRU6': '🚶 Tráfico U6M'
+                    'VENTAS OU6M': '💰 Ventas U6M ($)',
+                    'TRAFICO U6M': '🚶 Tráfico U6M'
                 })
 
                 st.dataframe(top_10_display, use_container_width=True, hide_index=True)
@@ -505,20 +505,20 @@ if df is not None:
                     top_10_raw = resultado.head(10)
 
                     # Ventas U6M por tienda
-                    if 'VU6M' in top_10_raw.columns:
+                    if 'VENTAS OU6M' in top_10_raw.columns:
                         fig_venta = go.Figure()
                         fig_venta.add_trace(go.Bar(
                             name='Ventas Últ. 6 Meses ($)',
                             x=top_10_raw['NAME'],
-                            y=top_10_raw['VU6M'],
+                            y=top_10_raw['VENTAS OU6M'],
                             marker_color='#ED1C24'
                         ))
-                        if vu6m > 0:
+                        if VENTAS OU6M > 0:
                             fig_venta.add_hline(
-                                y=vu6m,
+                                y=VENTAS OU6M,
                                 line_dash="dash",
                                 line_color="#FFD100",
-                                annotation_text=f"Tu propuesta: ${vu6m:,.0f}",
+                                annotation_text=f"Tu propuesta: ${VENTAS OU6M:,.0f}",
                                 annotation_position="top left"
                             )
                         fig_venta.update_layout(
@@ -529,20 +529,20 @@ if df is not None:
                         st.plotly_chart(fig_venta, use_container_width=True)
 
                     # Tráfico U6M por tienda
-                    if 'TRU6' in top_10_raw.columns:
+                    if 'TRAFICO U6M' in top_10_raw.columns:
                         fig_traf = go.Figure()
                         fig_traf.add_trace(go.Bar(
                             name='Tráfico Últ. 6 Meses',
                             x=top_10_raw['NAME'],
-                            y=top_10_raw['TRU6'],
+                            y=top_10_raw['TRAFICO U6M'],
                             marker_color='#FFD100'
                         ))
-                        if tru6 > 0:
+                        if TRAFICO U6M > 0:
                             fig_traf.add_hline(
-                                y=tru6,
+                                y=TRAFICO U6M,
                                 line_dash="dash",
                                 line_color="#ED1C24",
-                                annotation_text=f"Tu propuesta: {tru6:,}",
+                                annotation_text=f"Tu propuesta: {TRAFICO U6M:,}",
                                 annotation_position="top left"
                             )
                         fig_traf.update_layout(
@@ -553,21 +553,21 @@ if df is not None:
                         st.plotly_chart(fig_traf, use_container_width=True)
 
                     # Scatter Ventas vs Tráfico
-                    if 'VU6M' in top_10_raw.columns and 'TRU6' in top_10_raw.columns:
+                    if 'VENTAS OU6M' in top_10_raw.columns and 'TRAFICO U6M' in top_10_raw.columns:
                         fig_vt = px.scatter(
                             top_10_raw,
-                            x='TRU6',
-                            y='VU6M',
+                            x='TRAFICO U6M',
+                            y='VENTAS OU6M',
                             size='AREA',
                             color='SIMILITUD',
                             hover_data=['NAME', 'ZONA'],
                             title='Ventas vs Tráfico U6M (Tamaño = Área, Color = Similitud)',
-                            labels={'TRU6': 'Tráfico Últ. 6 Meses', 'VU6M': 'Ventas U6M ($)'},
+                            labels={'TRAFICO U6M': 'Tráfico Últ. 6 Meses', 'VENTAS OU6M': 'Ventas U6M ($)'},
                             color_continuous_scale=['#C41E3A', '#ED1C24', '#FFD100', '#28a745']
                         )
-                        if vu6m > 0 or tru6 > 0:
+                        if VENTAS OU6M > 0 or TRAFICO U6M > 0:
                             fig_vt.add_trace(go.Scatter(
-                                x=[tru6], y=[vu6m],
+                                x=[TRAFICO U6M], y=[VENTAS OU6M],
                                 mode='markers',
                                 marker=dict(color='blue', size=14, symbol='star'),
                                 name='Tu propuesta'
@@ -603,8 +603,8 @@ if df is not None:
                     st.plotly_chart(fig_sim, use_container_width=True)
 
                     st.markdown("#### 📋 Comparación con Tienda Espejo")
-                    vu6m_val2 = mejor.get('VU6M', 0)
-                    tru6_val2 = mejor.get('TRU6', 0)
+                    VENTAS OU6M_val2 = mejor.get('VENTAS OU6M', 0)
+                    TRAFICO U6M_val2 = mejor.get('TRAFICO U6M', 0)
                     comparacion = pd.DataFrame({
                         'Característica': ['Segmento', 'Zona', 'Municipio', 'Estrato',
                                            'Tipo de Local', 'Generador', 'Área',
@@ -615,16 +615,16 @@ if df is not None:
                             nueva_tienda['ESTRATO'], nueva_tienda['TIPO DE LOCAL'], nueva_tienda['GENERADOR'],
                             f"{nueva_tienda['AREA']:.1f} m²",
                             f"{nueva_tienda['VIVIENDAS']:,}", f"{nueva_tienda['EMPLEOS']:,}",
-                            f"${nueva_tienda['VU6M']:,.0f}",
-                            f"{nueva_tienda['TRU6']:,}"
+                            f"${nueva_tienda['VENTAS OU6M']:,.0f}",
+                            f"{nueva_tienda['TRAFICO U6M']:,}"
                         ],
                         'Tienda Espejo': [
                             mejor['SEG26'], mejor['ZONA'], mejor['MUN'],
                             mejor['ESTRATO'], mejor['TIPO DE LOCAL'], mejor['GENERADOR'],
                             f"{mejor['AREA']:.1f} m²",
                             f"{mejor['VT']:,.0f}", f"{mejor['ET']:,.0f}",
-                            f"${vu6m_val2:,.0f}",
-                            f"{tru6_val2:,.0f}"
+                            f"${VENTAS OU6M_val2:,.0f}",
+                            f"{TRAFICO U6M_val2:,.0f}"
                         ],
                         'Coincide / Diferencia': [
                             '✅' if nueva_tienda['SEG26'] == mejor['SEG26'] else '❌',
@@ -636,8 +636,8 @@ if df is not None:
                             f"{abs(nueva_tienda['AREA'] - mejor['AREA']):.1f} m²",
                             f"{abs(nueva_tienda['VIVIENDAS'] - mejor['VT']):,.0f}",
                             f"{abs(nueva_tienda['EMPLEOS'] - mejor['ET']):,.0f}",
-                            f"${abs(nueva_tienda['VU6M'] - vu6m_val2):,.0f}",
-                            f"{abs(nueva_tienda['TRU6'] - tru6_val2):,.0f}"
+                            f"${abs(nueva_tienda['VENTAS OU6M'] - VENTAS OU6M_val2):,.0f}",
+                            f"{abs(nueva_tienda['TRAFICO U6M'] - TRAFICO U6M_val2):,.0f}"
                         ]
                     })
                     st.dataframe(comparacion, use_container_width=True, hide_index=True)
@@ -653,7 +653,7 @@ if df is not None:
                     5. **Distancia euclidiana** en espacio multidimensional
                     6. **Similitud** = inversión normalizada a 0-100%
                     
-                    **Variables numéricas:** ESTRATO, ÁREA, VIVIENDAS, EMPLEOS, **VU6M** (Ventas Últ. 6 Meses), **TRU6** (Tráfico Últ. 6 Meses)
+                    **Variables numéricas:** ESTRATO, ÁREA, VIVIENDAS, EMPLEOS, **VENTAS OU6M** (Ventas Últ. 6 Meses), **TRAFICO U6M** (Tráfico Últ. 6 Meses)
                     
                     **Variables categóricas:** ZONA, TIPO DE LOCAL, GENERADOR, MUNICIPIO
                     """)
@@ -676,13 +676,13 @@ else:
     st.markdown("""
     ### 📖 Cómo usar esta herramienta:
     1. **Carga tu archivo Excel** en la barra lateral (o usa los datos precargados)
-    2. **Completa los datos** de la nueva tienda, incluyendo **VU6M** y **TRU6**
+    2. **Completa los datos** de la nueva tienda, incluyendo **VENTAS OU6M** y **TRAFICO U6M**
     3. **Ajusta los pesos** en el sidebar
     4. **Haz clic en "Buscar Tienda Espejo"**
     
     ### 📊 Columnas requeridas en el Excel:
-    - **VU6M** — Ventas acumuladas de los últimos 6 meses por tienda
-    - **TRU6** — Tráfico acumulado de los últimos 6 meses por tienda
+    - **VENTAS OU6M** — Ventas acumuladas de los últimos 6 meses por tienda
+    - **TRAFICO U6M** — Tráfico acumulado de los últimos 6 meses por tienda
     
     Asegúrate de que tu archivo Excel incluya estas columnas con esos nombres exactos.
     """)
